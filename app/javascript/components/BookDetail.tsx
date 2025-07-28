@@ -202,10 +202,11 @@ const BookDetail: React.FC = () => {
           <h3 className="text-lg font-semibold mb-4">Add a Review</h3>
           <form onSubmit={handleReviewSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="review-title" className="block text-sm font-medium text-gray-700 mb-1">
                 Title
               </label>
               <input
+                id="review-title"
                 type="text"
                 value={newReview.title}
                 onChange={(e) => setNewReview({...newReview, title: e.target.value})}
@@ -214,10 +215,11 @@ const BookDetail: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="review-description" className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
               <textarea
+                id="review-description"
                 value={newReview.description}
                 onChange={(e) => setNewReview({...newReview, description: e.target.value})}
                 rows={3}
@@ -226,10 +228,11 @@ const BookDetail: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="review-score" className="block text-sm font-medium text-gray-700 mb-1">
                 Score
               </label>
               <select
+                id="review-score"
                 value={newReview.score}
                 onChange={(e) => setNewReview({...newReview, score: parseInt(e.target.value)})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
