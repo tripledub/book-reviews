@@ -53,7 +53,7 @@ describe('BookDetail Component', () => {
 
     renderWithRouter(<BookDetail />)
     
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
   })
 
   it('renders book details after successful API call', async () => {
@@ -149,8 +149,8 @@ describe('BookDetail Component', () => {
     renderWithRouter(<BookDetail />)
     
     await waitFor(() => {
-      expect(screen.getByText('4.5')).toBeInTheDocument() // (5+4)/2 = 4.5
-      expect(screen.getByText('(2 reviews)')).toBeInTheDocument()
+      expect(screen.getByText(/4\.5/)).toBeInTheDocument() // (5+4)/2 = 4.5
+      expect(screen.getByText(/\(2 reviews\)/)).toBeInTheDocument()
     })
   })
 

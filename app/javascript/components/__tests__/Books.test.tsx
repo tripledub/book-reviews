@@ -54,7 +54,7 @@ describe('Books Component', () => {
 
     renderWithRouter(<Books />)
     
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
   })
 
   it('renders books after successful API call', async () => {
@@ -148,6 +148,7 @@ describe('Books Component', () => {
   it('clears search when clear button is clicked', async () => {
     const user = userEvent.setup()
     
+    // Mock successful initial load
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -157,6 +158,7 @@ describe('Books Component', () => {
 
     renderWithRouter(<Books />)
     
+    // Wait for books to load
     await waitFor(() => {
       expect(screen.getByText('Pride and Prejudice')).toBeInTheDocument()
     })
@@ -164,10 +166,22 @@ describe('Books Component', () => {
     const searchInput = screen.getByPlaceholderText(/search books/i)
     await user.type(searchInput, 'test')
 
+    // Mock successful clear operation
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => mockBooks,
+      } as Response)
+    )
+
     const clearButton = screen.getByRole('button', { name: /clear/i })
     await user.click(clearButton)
 
-    expect(searchInput).toHaveValue('')
+    // Wait for the component to re-render after clearing
+    await waitFor(() => {
+      const updatedSearchInput = screen.getByPlaceholderText(/search books/i)
+      expect(updatedSearchInput).toHaveValue('')
+    })
   })
 
   it('displays book information correctly', async () => {
@@ -227,9 +241,14 @@ describe('Books Component', () => {
     renderWithRouter(<Books />)
     
     await waitFor(() => {
-      const bookLinks = screen.getAllByRole('link')
-      expect(bookLinks[1]).toHaveAttribute('href', '/books/1') // First book link
-      expect(bookLinks[2]).toHaveAttribute('href', '/books/2') // Second book link
+      expect(screen.getByText('Pride and Prejudice')).toBeInTheDocument()
+      expect(screen.getByText('1984')).toBeInTheDocument()
     })
+
+    const prideLink = screen.getByRole('link', { name: /pride and prejudice/i })
+    const orwellLink = screen.getByRole('link', { name: /1984/i })
+
+    expect(prideLink).toHaveAttribute('href', '/books/1')
+    expect(orwellLink).toHaveAttribute('href', '/books/2')
   })
 }) 
