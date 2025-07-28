@@ -1,0 +1,22 @@
+{
+  "name": "book-review",
+  "version": "1.0.0",
+  "description": "Book Review API",
+  "private": true,
+  "scripts": {
+    "lint": "bundle exec rubocop",
+    "lint:fix": "bundle exec rubocop -a",
+    "test": "bundle exec rspec",
+    "test:fast": "bundle exec rspec --fail-fast",
+    "precommit": "bundle exec rubocop && bundle exec rspec"
+  },
+  "devDependencies": {
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2"
+  },
+  "lint-staged": {
+    "*.rb": [
+      "bundle exec rubocop -a"
+    ]
+  }
+}
