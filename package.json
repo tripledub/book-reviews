@@ -8,15 +8,26 @@
     "lint:fix": "bundle exec rubocop -a",
     "test": "bundle exec rspec",
     "test:fast": "bundle exec rspec --fail-fast",
-    "precommit": "bundle exec rubocop && bundle exec rspec"
+    "precommit": "bundle exec rubocop && bundle exec rspec",
+    "build": "npx esbuild app/javascript/*.* --bundle --sourcemap --format=iife --outdir=app/assets/builds --public-path=/assets --loader:.js=jsx --loader:.jsx=jsx --loader:.ts=tsx --loader:.tsx=tsx",
+    "type-check": "npx tsc --noEmit"
   },
   "devDependencies": {
     "husky": "^9.0.11",
-    "lint-staged": "^15.2.2"
+    "lint-staged": "^15.2.2",
+    "typescript": "^5.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/node": "^20.0.0"
   },
   "lint-staged": {
     "*.rb": [
       "bundle exec rubocop -a"
     ]
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.7.1"
   }
 }

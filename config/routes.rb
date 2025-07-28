@@ -5,9 +5,7 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Defines the root path route ("/")
-  # root "posts#index"
-
+  # API routes
   namespace :api do
     namespace :v1 do
       resources :books, only: [ :index, :create, :show ] do
@@ -18,5 +16,13 @@ Rails.application.routes.draw do
 
       resources :reviews, only: [ :create ]
     end
+  end
+
+  # Root route for React SPA
+  root "application#index"
+
+  # Catch all for React SPA - must be last
+  get "*path", to: "application#index", constraints: ->(request) do
+    !request.xhr? && request.format.html?
   end
 end
