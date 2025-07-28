@@ -19,5 +19,9 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["app/javascript/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "types": [
+    "jest",
+    "@testing-library/jest-dom"
+  ]
 } 
