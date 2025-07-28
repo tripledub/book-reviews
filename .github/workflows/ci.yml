@@ -35,11 +35,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
           bundle install
-          npm install
+          npm install --legacy-peer-deps
 
       - name: Set up database
         env:
@@ -49,11 +50,17 @@ jobs:
           bundle exec rails db:create
           bundle exec rails db:schema:load
 
-      - name: Run tests
+      - name: Run Ruby tests
         env:
           RAILS_ENV: test
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/book_review_test
         run: bundle exec rspec
+
+      - name: Run JavaScript tests
+        run: npm run test:js
+
+      - name: Run TypeScript type checking
+        run: npm run type-check
 
   scan_ruby:
     runs-on: ubuntu-latest
@@ -83,6 +90,20 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Lint code for consistent style
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          bundle install
+          npm install --legacy-peer-deps
+
+      - name: Lint Ruby code for consistent style
         run: bundle exec rubocop -f github
+
+      - name: Lint JavaScript/TypeScript code
+        run: npm run type-check
 
