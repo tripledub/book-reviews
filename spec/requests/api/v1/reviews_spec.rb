@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Reviews", type: :request do
-  let!(:book) { Book.create!(title: "Test Book", author: "Test Author", subjects: ["Fiction"], languages: ["en"], image: "test.jpg") }
+  let!(:book) { Book.create!(title: "Test Book", author: "Test Author", subjects: [ "Fiction" ], languages: [ "en" ], image: "test.jpg") }
 
   describe "POST /api/v1/reviews" do
     context "with valid parameters" do

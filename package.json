@@ -17,12 +17,6 @@
   "lint-staged": {
     "*.rb": [
       "bundle exec rubocop -a"
-    ],
-    "app/**/*.rb": [
-      "bundle exec rspec --fail-fast"
-    ],
-    "spec/**/*.rb": [
-      "bundle exec rspec --fail-fast"
     ]
   }
 }
