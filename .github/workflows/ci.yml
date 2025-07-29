@@ -56,8 +56,22 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/book_review_test
         run: bundle exec rspec
 
+      - name: Upload Ruby coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/.resultset.json
+          flags: ruby
+          name: ruby-coverage
+
       - name: Run JavaScript tests
-        run: npm run test:js
+        run: npm run test:js:coverage
+
+      - name: Upload JavaScript coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: javascript
+          name: javascript-coverage
 
       - name: Run TypeScript type checking
         run: npm run type-check

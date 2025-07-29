@@ -15,9 +15,18 @@ module.exports = {
     'app/javascript/**/*.{ts,tsx}',
     '!app/javascript/**/*.d.ts',
     '!app/javascript/application.tsx',
+    '!app/javascript/types/**/*',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
   testPathIgnorePatterns: ['/node_modules/', '/vendor/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
 } 
