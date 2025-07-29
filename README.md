@@ -1,14 +1,11 @@
 # Book Review API
 
-[![CI](https://github.com/stewartc/book-review/workflows/CI/badge.svg)](https://github.com/stewartc/book-review/actions)
 [![Ruby](https://img.shields.io/badge/Ruby-3.3+-red.svg)](https://www.ruby-lang.org/)
 [![Rails](https://img.shields.io/badge/Rails-8.0+-red.svg)](https://rubyonrails.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)](https://www.postgresql.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Codecov](https://codecov.io/gh/stewartc/book-review/branch/main/graph/badge.svg)](https://codecov.io/gh/stewartc/book-review)
-[![Maintainability](https://api.codeclimate.com/v1/badges/maintainability)](https://codeclimate.com/github/stewartc/book-review)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/test_coverage)](https://codeclimate.com/github/stewartc/book-review)
 
 A Rails API for managing books and reviews, built with Rails 8, PostgreSQL, and RSpec.
 
