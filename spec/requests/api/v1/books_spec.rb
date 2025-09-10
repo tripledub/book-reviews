@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Api::V1::Books", type: :request do
-  let!(:book) { Book.create!(title: "Test Book", author: "Test Author", subjects: [ "Fiction" ], languages: [ "en" ], image: "https://example.com/test.jpg") }
+  let!(:book) { Book.create!(title: Faker::Book.title, author: Faker::Book.author, subjects: [ Faker::Book.genre ], languages: [ "en" ], image: Faker::Internet.url) }
   let!(:review) { Review.create!(book: book, title: "Great Book", description: "Amazing read", score: 5) }
 
   describe "GET /api/v1/books" do
@@ -13,20 +13,22 @@ RSpec.describe "Api::V1::Books", type: :request do
       expect(json_response).to have_key("books")
       expect(json_response).to have_key("pagy")
       expect(json_response["books"]).to be_an(Array)
-      expect(json_response["books"].first["title"]).to eq("Test Book")
+      expect(json_response["books"].first["title"]).to eq(book.title)
       expect(json_response["books"].first["reviews"]).to be_an(Array)
     end
   end
 
   describe "POST /api/v1/books" do
     it "creates a new book and returns http created" do
+      book_title = Faker::Book.title
+      book_author = Faker::Book.author
       book_params = {
         book: {
-          title: "New Book",
-          author: "New Author",
-          subjects: [ "Science Fiction" ],
+          title: book_title,
+          author: book_author,
+          subjects: [ Faker::Book.genre ],
           languages: [ "en" ],
-          image: "https://example.com/new.jpg"
+          image: Faker::Internet.url
         }
       }
 
@@ -34,8 +36,8 @@ RSpec.describe "Api::V1::Books", type: :request do
       expect(response).to have_http_status(:created)
 
       json_response = JSON.parse(response.body)
-      expect(json_response["title"]).to eq("New Book")
-      expect(json_response["author"]).to eq("New Author")
+      expect(json_response["title"]).to eq(book_title)
+      expect(json_response["author"]).to eq(book_author)
     end
 
     it "returns unprocessable entity for invalid params" do
@@ -50,7 +52,7 @@ RSpec.describe "Api::V1::Books", type: :request do
       expect(response).to have_http_status(:success)
 
       json_response = JSON.parse(response.body)
-      expect(json_response["title"]).to eq("Test Book")
+      expect(json_response["title"]).to eq(book.title)
       expect(json_response["reviews"]).to be_an(Array)
       expect(json_response["reviews"].first["title"]).to eq("Great Book")
     end
@@ -63,12 +65,12 @@ RSpec.describe "Api::V1::Books", type: :request do
 
   describe "GET /api/v1/books/search" do
     it "returns http success for valid search query" do
-      get "/api/v1/books/search", params: { q: "Test" }
+      get "/api/v1/books/search", params: { q: book.title.split.first }
       expect(response).to have_http_status(:success)
 
       json_response = JSON.parse(response.body)
       expect(json_response).to be_an(Array)
-      expect(json_response.first["title"]).to eq("Test Book")
+      expect(json_response.first["title"]).to eq(book.title)
     end
 
     it "returns bad request for missing query parameter" do

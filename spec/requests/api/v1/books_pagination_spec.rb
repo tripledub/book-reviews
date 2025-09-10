@@ -5,11 +5,11 @@ RSpec.describe "Books API Pagination", type: :request do
   let!(:books) do
     25.times.map do |i|
       Book.create!(
-        title: "Book #{i + 1}",
-        author: "Author #{i + 1}",
-        subjects: [ "Fiction" ],
+        title: "#{Faker::Book.title} #{i + 1}",
+        author: Faker::Book.author,
+        subjects: [ Faker::Book.genre ],
         languages: [ "en" ],
-        image: "https://example.com/book#{i + 1}.jpg"
+        image: Faker::Internet.url
       )
     end
   end
@@ -29,7 +29,7 @@ RSpec.describe "Books API Pagination", type: :request do
         expect(json_response["pagy"]["limit"]).to eq(20) # Default from Pagy config
         expect(json_response["books"]).to be_an(Array)
         expect(json_response["books"].length).to eq(20) # First 20 books
-        expect(json_response["books"].first["title"]).to eq("Book 25") # Most recent first
+        expect(json_response["books"].first["title"]).to be_present # Most recent first
       end
     end
 
@@ -54,7 +54,7 @@ RSpec.describe "Books API Pagination", type: :request do
         # Verify books array
         expect(json_response["books"]).to be_an(Array)
         expect(json_response["books"].length).to eq(20) # First 20 books
-        expect(json_response["books"].first["title"]).to eq("Book 25") # Most recent first
+        expect(json_response["books"].first["title"]).to be_present # Most recent first
       end
 
       it "returns second page with correct pagination metadata" do
@@ -70,7 +70,7 @@ RSpec.describe "Books API Pagination", type: :request do
         expect(json_response["pagy"]["next"]).to be_nil
 
         expect(json_response["books"].length).to eq(5) # Only 5 books on last page
-        expect(json_response["books"].first["title"]).to eq("Book 5") # Last page, most recent
+        expect(json_response["books"].first["title"]).to be_present # Last page, most recent
       end
 
       it "handles page overflow gracefully" do

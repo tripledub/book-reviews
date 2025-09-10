@@ -48,6 +48,9 @@ group :development, :test do
 
   # Test coverage
   gem "simplecov", require: false
+
+  # Generate fake data for tests
+  gem "faker"
 end
 
 group :development do
