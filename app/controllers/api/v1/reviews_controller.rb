@@ -2,11 +2,11 @@ module Api
   module V1
     class ReviewsController < ApplicationController
       def create
-        review = Review.new(review_params)
-        if review.save
-          render json: review.as_json(include: :book), status: :created
+        result = ReviewService.create_review(review_params)
+        if result[:success]
+          render json: result[:review].as_json(include: :book), status: :created
         else
-          render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: result[:errors] }, status: :unprocessable_entity
         end
       rescue ActionController::ParameterMissing
         render json: { error: "Review parameters are required" }, status: :bad_request
