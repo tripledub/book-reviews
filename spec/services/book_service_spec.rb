@@ -187,7 +187,7 @@ RSpec.describe BookService, type: :service do
 
   describe '.recent_books' do
     it 'returns the specified number of recent books' do
-      books = BookService.recent_books(2)
+      books = BookService.recent_books(limit: 2)
 
       expect(books.count).to eq(2)
       expect(books).to include(book2, book3) # Should return the 2 most recent

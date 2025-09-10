@@ -67,21 +67,21 @@ RSpec.describe ReviewService, type: :service do
 
   describe '.reviews_by_score' do
     it 'returns reviews within the specified score range' do
-      reviews = ReviewService.reviews_by_score(4, 5)
+      reviews = ReviewService.reviews_by_score(min_score: 4, max_score: 5)
 
       expect(reviews).to include(review1, review2, review5)
       expect(reviews).not_to include(review3, review4)
     end
 
     it 'defaults max score to 5' do
-      reviews = ReviewService.reviews_by_score(4)
+      reviews = ReviewService.reviews_by_score(min_score: 4)
 
       expect(reviews).to include(review1, review2, review5)
       expect(reviews).not_to include(review3, review4)
     end
 
     it 'orders reviews by creation date descending' do
-      reviews = ReviewService.reviews_by_score(4, 5)
+      reviews = ReviewService.reviews_by_score(min_score: 4, max_score: 5)
 
       expect(reviews).to include(review1, review2, review5)
       expect(reviews.count).to eq(3)
@@ -108,7 +108,7 @@ RSpec.describe ReviewService, type: :service do
 
   describe '.recent_reviews' do
     it 'returns the specified number of recent reviews' do
-      reviews = ReviewService.recent_reviews(3)
+      reviews = ReviewService.recent_reviews(limit: 3)
 
       expect(reviews.count).to eq(3)
       expect(reviews).to include(review5, review4, review3) # Most recent
@@ -122,7 +122,7 @@ RSpec.describe ReviewService, type: :service do
     end
 
     it 'orders reviews by creation date descending' do
-      reviews = ReviewService.recent_reviews(3)
+      reviews = ReviewService.recent_reviews(limit: 3)
 
       expect(reviews).to include(review5, review4, review3)
       expect(reviews.count).to eq(3)
@@ -160,7 +160,7 @@ RSpec.describe ReviewService, type: :service do
   describe '.search_reviews' do
     context 'with valid query' do
       it 'returns reviews matching title' do
-        result = ReviewService.search_reviews("Great")
+        result = ReviewService.search_reviews(query: "Great")
 
         expect(result[:success]).to be true
         expect(result[:reviews]).to include(review1)
@@ -170,21 +170,21 @@ RSpec.describe ReviewService, type: :service do
       it 'returns reviews matching description' do
         # Assuming we have a description field
         review1.update!(description: "This is a great programming book")
-        result = ReviewService.search_reviews("programming")
+        result = ReviewService.search_reviews(query: "programming")
 
         expect(result[:success]).to be true
         expect(result[:reviews]).to include(review1)
       end
 
       it 'is case insensitive' do
-        result = ReviewService.search_reviews("great")
+        result = ReviewService.search_reviews(query: "great")
 
         expect(result[:success]).to be true
         expect(result[:reviews]).to include(review1)
       end
 
       it 'orders reviews by creation date descending' do
-        result = ReviewService.search_reviews("book")
+        result = ReviewService.search_reviews(query: "book")
 
         expect(result[:success]).to be true
         expect(result[:reviews]).to include(review1, review3) # Reviews with "book" in title
@@ -194,14 +194,14 @@ RSpec.describe ReviewService, type: :service do
 
     context 'with blank query' do
       it 'returns error message' do
-        result = ReviewService.search_reviews("")
+        result = ReviewService.search_reviews(query: "")
 
         expect(result[:success]).to be false
         expect(result[:error]).to eq("Search query is required")
       end
 
       it 'returns error message for nil query' do
-        result = ReviewService.search_reviews(nil)
+        result = ReviewService.search_reviews(query: nil)
 
         expect(result[:success]).to be false
         expect(result[:error]).to eq("Search query is required")
@@ -232,28 +232,28 @@ RSpec.describe ReviewService, type: :service do
 
   describe '.paginated_reviews' do
     it 'returns the specified number of reviews per page' do
-      reviews = ReviewService.paginated_reviews(1, 3)
+      reviews = ReviewService.paginated_reviews(page: 1, per_page: 3)
 
       expect(reviews.count).to eq(3)
     end
 
     it 'returns reviews for the specified page' do
-      reviews_page_1 = ReviewService.paginated_reviews(1, 2)
-      reviews_page_2 = ReviewService.paginated_reviews(2, 2)
+      reviews_page_1 = ReviewService.paginated_reviews(page: 1, per_page: 2)
+      reviews_page_2 = ReviewService.paginated_reviews(page: 2, per_page: 2)
 
       expect(reviews_page_1).to include(review5, review4) # Most recent 2
       expect(reviews_page_2).to include(review3, review2) # Next 2
     end
 
     it 'orders reviews by creation date descending' do
-      reviews = ReviewService.paginated_reviews(1, 3)
+      reviews = ReviewService.paginated_reviews(page: 1, per_page: 3)
 
       expect(reviews).to include(review5, review4, review3)
       expect(reviews.count).to eq(3)
     end
 
     it 'includes book association' do
-      reviews = ReviewService.paginated_reviews(1, 1)
+      reviews = ReviewService.paginated_reviews(page: 1, per_page: 1)
 
       expect(reviews.first.association(:book)).to be_loaded
     end

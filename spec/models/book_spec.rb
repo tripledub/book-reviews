@@ -179,7 +179,7 @@ RSpec.describe Book, type: :model do
       end
 
       it 'accepts custom minimum score' do
-        highly_rated_books = Book.highly_rated(3.0)
+        highly_rated_books = Book.highly_rated(min_score: 3.0)
         expect(highly_rated_books).to include(book1, book2)
         expect(highly_rated_books).not_to include(book3)
       end
@@ -193,7 +193,7 @@ RSpec.describe Book, type: :model do
       end
 
       it 'accepts custom limit' do
-        recent_books = Book.recent(2)
+        recent_books = Book.recent(limit: 2)
         expect(recent_books.count).to eq(2)
         expect(recent_books).to include(book3, book2)
       end
@@ -201,7 +201,7 @@ RSpec.describe Book, type: :model do
 
     describe '.by_subject' do
       it 'returns books with specific subject' do
-        fiction_books = Book.by_subject('Fiction')
+        fiction_books = Book.by_subject(subject: 'Fiction')
         expect(fiction_books).to include(book1, book3)
         expect(fiction_books).not_to include(book2)
       end
@@ -209,7 +209,7 @@ RSpec.describe Book, type: :model do
 
     describe '.by_language' do
       it 'returns books available in specific language' do
-        english_books = Book.by_language('en')
+        english_books = Book.by_language(language: 'en')
         expect(english_books).to include(book1, book3)
         expect(english_books).not_to include(book2)
       end
@@ -217,7 +217,7 @@ RSpec.describe Book, type: :model do
 
     describe '.by_author' do
       it 'returns books by specific author (case insensitive)' do
-        author1_books = Book.by_author('Author 1')
+        author1_books = Book.by_author(author_name: 'Author 1')
         expect(author1_books).to include(book1, book3)
         expect(author1_books).not_to include(book2)
       end
@@ -353,7 +353,7 @@ RSpec.describe Book, type: :model do
       end
 
       it 'accepts custom limit' do
-        popular_books = Book.popular_books(2)
+        popular_books = Book.popular_books(limit: 2)
         # Check that the limit is respected (use length instead of size for grouped queries)
         expect(popular_books.length).to be <= 2
         # Check that our test books are included if they're in the top 2
@@ -364,14 +364,14 @@ RSpec.describe Book, type: :model do
     describe '.by_rating_range' do
       it 'returns books within specified rating range' do
         # Test with a specific range that should include our test books
-        books_in_range = Book.by_rating_range(3.0, 5.0)
+        books_in_range = Book.by_rating_range(min_score: 3.0, max_score: 5.0)
         expect(books_in_range).to include(book1, book2)
         expect(books_in_range).not_to include(book3)
       end
 
       it 'returns empty collection for range with no matches' do
         # Use a very specific range that won't match our test data
-        books_in_range = Book.by_rating_range(4.8, 5.0)
+        books_in_range = Book.by_rating_range(min_score: 4.8, max_score: 5.0)
         # Only check that our specific test books are not included
         expect(books_in_range).not_to include(book1, book2, book3)
       end
@@ -389,7 +389,7 @@ RSpec.describe Book, type: :model do
       end
 
       it 'accepts custom days and minimum reviews' do
-        trending_books = Book.trending_books(7, 1) # Last 7 days, min 1 review
+        trending_books = Book.trending_books(days: 7, min_reviews: 1) # Last 7 days, min 1 review
         expect(trending_books).to be_present
       end
     end
