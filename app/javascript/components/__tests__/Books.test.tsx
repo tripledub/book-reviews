@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import Books from '../Books'
-import { Book } from '../../types'
+import { Book, PaginatedResponse } from '../../types'
 
 // Mock fetch
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>
@@ -31,6 +31,20 @@ const mockBooks: Book[] = [
   }
 ]
 
+const mockPaginatedResponse: PaginatedResponse<Book> = {
+  pagy: {
+    count: 2,
+    page: 1,
+    pages: 1,
+    limit: 20,
+    from: 1,
+    to: 2,
+    prev: null,
+    next: null
+  },
+  books: mockBooks
+}
+
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>
@@ -48,7 +62,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -61,7 +75,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -77,7 +91,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -95,7 +109,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -111,7 +125,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => [mockBooks[0]], // Only return first book
+        json: async () => ({ ...mockPaginatedResponse, books: [mockBooks[0]] }), // Only return first book
       } as Response)
     )
 
@@ -129,7 +143,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -152,7 +166,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -170,7 +184,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -188,7 +202,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -219,7 +233,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => [],
+        json: async () => ({ ...mockPaginatedResponse, books: [] }),
       } as Response)
     )
 
@@ -234,7 +248,7 @@ describe('Books Component', () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: async () => mockBooks,
+        json: async () => mockPaginatedResponse,
       } as Response)
     )
 
@@ -250,5 +264,98 @@ describe('Books Component', () => {
 
     expect(prideLink).toHaveAttribute('href', '/books/1')
     expect(orwellLink).toHaveAttribute('href', '/books/2')
+  })
+
+  it('renders pagination controls when there are multiple pages', async () => {
+    const multiPageResponse: PaginatedResponse<Book> = {
+      pagy: {
+        count: 40,
+        page: 1,
+        pages: 2,
+        limit: 20,
+        from: 1,
+        to: 20,
+        prev: null,
+        next: 2
+      },
+      books: mockBooks
+    }
+
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => multiPageResponse,
+      } as Response)
+    )
+
+    renderWithRouter(<Books />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Previous')).toBeInTheDocument()
+      expect(screen.getByText('Next')).toBeInTheDocument()
+      expect(screen.getByText('1')).toBeInTheDocument()
+      expect(screen.getByText('2')).toBeInTheDocument()
+      expect(screen.getByText('Showing 1 to 20 of 40 books')).toBeInTheDocument()
+    })
+  })
+
+  it('handles page navigation correctly', async () => {
+    const user = userEvent.setup()
+    
+    const multiPageResponse: PaginatedResponse<Book> = {
+      pagy: {
+        count: 40,
+        page: 1,
+        pages: 2,
+        limit: 20,
+        from: 1,
+        to: 20,
+        prev: null,
+        next: 2
+      },
+      books: mockBooks
+    }
+
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => multiPageResponse,
+      } as Response)
+    )
+
+    renderWithRouter(<Books />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('1')).toBeInTheDocument()
+    })
+
+    // Mock the second page response
+    const secondPageResponse: PaginatedResponse<Book> = {
+      pagy: {
+        count: 40,
+        page: 2,
+        pages: 2,
+        limit: 20,
+        from: 21,
+        to: 40,
+        prev: 1,
+        next: null
+      },
+      books: mockBooks
+    }
+
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => secondPageResponse,
+      } as Response)
+    )
+
+    const nextButton = screen.getByText('Next')
+    await user.click(nextButton)
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/v1/books?page=2')
+    })
   })
 }) 

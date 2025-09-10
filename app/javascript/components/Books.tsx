@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Book } from '../types'
+import { Book, PaginatedResponse, PaginationMeta } from '../types'
 import SearchBar from './SearchBar'
 
 const Books: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([])
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState<number>(1)
 
   useEffect(() => {
     fetchBooks()
-  }, [])
+  }, [currentPage])
 
-  const fetchBooks = async (query: string = ''): Promise<void> => {
+  const fetchBooks = async (query: string = '', page: number = 1): Promise<void> => {
     try {
       setLoading(true)
       const url = query 
         ? `/api/v1/books/search?q=${encodeURIComponent(query)}`
-        : '/api/v1/books'
+        : `/api/v1/books?page=${page}`
       
       const response = await fetch(url)
       if (!response.ok) throw new Error('Failed to fetch books')
       
-      const data: Book[] = await response.json()
-      setBooks(data)
+      const data: PaginatedResponse<Book> = await response.json()
+      setBooks(data.books)
+      setPagination(data.pagy)
       setError(null)
     } catch (err) {
       setError('Failed to load books')
@@ -34,7 +37,13 @@ const Books: React.FC = () => {
   }
 
   const handleSearch = (query: string): void => {
-    fetchBooks(query)
+    setCurrentPage(1) // Reset to first page when searching
+    fetchBooks(query, 1)
+  }
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page)
+    fetchBooks('', page)
   }
 
   if (loading) {
@@ -123,6 +132,59 @@ const Books: React.FC = () => {
           <div className="text-gray-500 text-lg">
             No books available.
           </div>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {pagination && pagination.pages > 1 && (
+        <div className="mt-8 flex justify-center items-center space-x-2">
+          {/* Previous Button */}
+          <button
+            onClick={() => handlePageChange(pagination.page - 1)}
+            disabled={!pagination.prev}
+            className={`px-3 py-2 rounded-md text-sm font-medium ${
+              pagination.prev
+                ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Previous
+          </button>
+
+          {/* Page Numbers */}
+          {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                page === pagination.page
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          {/* Next Button */}
+          <button
+            onClick={() => handlePageChange(pagination.page + 1)}
+            disabled={!pagination.next}
+            className={`px-3 py-2 rounded-md text-sm font-medium ${
+              pagination.next
+                ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Pagination Info */}
+      {pagination && (
+        <div className="mt-4 text-center text-sm text-gray-600">
+          Showing {pagination.from} to {pagination.to} of {pagination.count} books
         </div>
       )}
     </div>
