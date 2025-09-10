@@ -49,6 +49,14 @@ Rails.application.configure do
   # Replace the default in-process memory cache store with a durable alternative.
   config.cache_store = :solid_cache_store
 
+  # Custom cache configuration for Book Review application
+  # Use file cache for production (persistent, no external dependencies)
+  # Can be overridden with environment variables
+  config.book_review_cache_backend = ENV.fetch("BOOK_REVIEW_CACHE_BACKEND", "file").to_sym
+  config.book_review_cache_options = {
+    cache_dir: ENV.fetch("BOOK_REVIEW_CACHE_DIR", File.join(Rails.root, "tmp", "cache", "book_review"))
+  }
+
   # Replace the default in-process and non-durable queuing backend for Active Job.
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }

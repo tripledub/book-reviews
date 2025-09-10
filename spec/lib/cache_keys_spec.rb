@@ -1,0 +1,128 @@
+require 'rails_helper'
+
+RSpec.describe CacheKeys do
+  describe '.books' do
+    it 'generates correct cache key for books list' do
+      key = CacheKeys.books(page: 1, limit: 20)
+      expect(key).to eq('book_review:books:page=1:limit=20:origin=api')
+    end
+
+    it 'generates correct cache key with different parameters' do
+      key = CacheKeys.books(page: 2, limit: 10)
+      expect(key).to eq('book_review:books:page=2:limit=10:origin=api')
+    end
+  end
+
+  describe '.book' do
+    it 'generates correct cache key for specific book' do
+      key = CacheKeys.book(123)
+      expect(key).to eq('book_review:book:id=123:origin=api')
+    end
+  end
+
+  describe '.search_books' do
+    it 'generates correct cache key for search query' do
+      key = CacheKeys.search_books('ruby programming')
+      expect(key).to match(/^book_review:search:query=[a-f0-9]{32}:origin=api$/)
+    end
+
+    it 'generates consistent keys for same query' do
+      key1 = CacheKeys.search_books('ruby programming')
+      key2 = CacheKeys.search_books('ruby programming')
+      expect(key1).to eq(key2)
+    end
+
+    it 'generates different keys for different queries' do
+      key1 = CacheKeys.search_books('ruby programming')
+      key2 = CacheKeys.search_books('python programming')
+      expect(key1).not_to eq(key2)
+    end
+
+    it 'handles case insensitive queries consistently' do
+      key1 = CacheKeys.search_books('Ruby Programming')
+      key2 = CacheKeys.search_books('ruby programming')
+      expect(key1).to eq(key2)
+    end
+  end
+
+  describe '.reviews' do
+    it 'generates correct cache key for book reviews' do
+      key = CacheKeys.reviews(456)
+      expect(key).to eq('book_review:reviews:book_id=456:origin=api')
+    end
+  end
+
+  describe '.review_stats' do
+    it 'generates correct cache key for review statistics' do
+      key = CacheKeys.review_stats(789)
+      expect(key).to eq('book_review:review_stats:book_id=789:origin=api')
+    end
+  end
+
+  describe '.highly_rated_books' do
+    it 'generates correct cache key for highly rated books' do
+      key = CacheKeys.highly_rated_books(limit: 10)
+      expect(key).to eq('book_review:highly_rated:limit=10:origin=api')
+    end
+  end
+
+  describe '.recent_books' do
+    it 'generates correct cache key for recent books' do
+      key = CacheKeys.recent_books(limit: 5)
+      expect(key).to eq('book_review:recent:limit=5:origin=api')
+    end
+  end
+
+  describe 'pattern methods' do
+    it 'generates correct pattern for books' do
+      pattern = CacheKeys.books_pattern
+      expect(pattern).to eq('book_review:books:*')
+    end
+
+    it 'generates correct pattern for search' do
+      pattern = CacheKeys.search_pattern
+      expect(pattern).to eq('book_review:search:*')
+    end
+
+    it 'generates correct pattern for reviews' do
+      pattern = CacheKeys.reviews_pattern
+      expect(pattern).to eq('book_review:reviews:*')
+    end
+
+    it 'generates correct pattern for stats' do
+      pattern = CacheKeys.stats_pattern
+      expect(pattern).to eq('book_review:review_stats:*')
+    end
+
+    it 'generates correct pattern for highly rated' do
+      pattern = CacheKeys.highly_rated_pattern
+      expect(pattern).to eq('book_review:highly_rated:*')
+    end
+
+    it 'generates correct pattern for recent' do
+      pattern = CacheKeys.recent_pattern
+      expect(pattern).to eq('book_review:recent:*')
+    end
+  end
+
+  describe '.clear_book_cache' do
+    it 'clears cache for specific book' do
+      book_id = 123
+      expected_keys = [
+        CacheKeys.book(book_id),
+        CacheKeys.reviews(book_id),
+        CacheKeys.review_stats(book_id)
+      ]
+      expect(CacheService).to receive(:delete).with(expected_keys)
+
+      CacheKeys.clear_book_cache(book_id)
+    end
+  end
+
+  describe '.clear_all_cache' do
+    it 'clears all cache with correct pattern' do
+      expect(CacheKeys).to receive(:clear_pattern).with('book_review:*')
+      CacheKeys.clear_all_cache
+    end
+  end
+end

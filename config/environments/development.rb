@@ -28,6 +28,14 @@ Rails.application.configure do
   # Change to :null_store to avoid any caching.
   config.cache_store = :memory_store
 
+  # Custom cache configuration for Book Review application
+  # Use memory cache for development (fast, no persistence needed)
+  # Can be overridden with environment variables
+  config.book_review_cache_backend = ENV.fetch("BOOK_REVIEW_CACHE_BACKEND", "memory").to_sym
+  config.book_review_cache_options = {
+    # Memory cache has no additional options needed
+  }
+
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 

@@ -22,6 +22,14 @@ Rails.application.configure do
   config.consider_all_requests_local = true
   config.cache_store = :null_store
 
+  # Custom cache configuration for Book Review application
+  # Use memory cache for tests (fast, isolated, cleared between tests)
+  # Can be overridden with environment variables
+  config.book_review_cache_backend = ENV.fetch("BOOK_REVIEW_CACHE_BACKEND", "memory").to_sym
+  config.book_review_cache_options = {
+    # Memory cache has no additional options needed
+  }
+
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
 
