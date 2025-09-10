@@ -205,6 +205,26 @@ RSpec.describe Book, type: :model do
         expect(fiction_books).to include(book1, book3)
         expect(fiction_books).not_to include(book2)
       end
+
+      it 'accepts array of subjects (all must be present)' do
+        # Create a book with both Fiction and Adventure subjects
+        book_with_multiple_subjects = Book.create!(
+          title: 'Adventure Fiction Book',
+          author: 'Test Author',
+          subjects: [ 'Fiction', 'Adventure' ],
+          languages: [ 'en' ],
+          image: 'https://example.com/adventure.jpg'
+        )
+
+        # Test with array of subjects - both must be present
+        books_with_both = Book.by_subject(subject: [ 'Fiction', 'Adventure' ])
+        expect(books_with_both).to include(book_with_multiple_subjects)
+        expect(books_with_both).not_to include(book1, book2, book3) # These don't have both subjects
+
+        # Test with array where only one subject matches
+        books_with_one = Book.by_subject(subject: [ 'Fiction', 'Romance' ])
+        expect(books_with_one).to be_empty # No books have both Fiction AND Romance
+      end
     end
 
     describe '.by_language' do
