@@ -62,4 +62,7 @@ gem "rspec-rails", "~> 8.0", groups: [ :development, :test ]
 gem "decent_exposure"
 gem "rails-controller-testing", groups: [ :development, :test ]
 
+# Pagination
+gem "pagy"
+
 gem "jsbundling-rails", "~> 1.3"

@@ -10,9 +10,11 @@ RSpec.describe "Api::V1::Books", type: :request do
       expect(response).to have_http_status(:success)
 
       json_response = JSON.parse(response.body)
-      expect(json_response).to be_an(Array)
-      expect(json_response.first["title"]).to eq("Test Book")
-      expect(json_response.first["reviews"]).to be_an(Array)
+      expect(json_response).to have_key("books")
+      expect(json_response).to have_key("pagy")
+      expect(json_response["books"]).to be_an(Array)
+      expect(json_response["books"].first["title"]).to eq("Test Book")
+      expect(json_response["books"].first["reviews"]).to be_an(Array)
     end
   end
 

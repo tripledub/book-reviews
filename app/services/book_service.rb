@@ -23,6 +23,16 @@ class BookService
       Book.includes(:reviews).recent
     end
 
+    # Retrieves books for pagination (to be used with controller's pagy method)
+    #
+    # @return [ActiveRecord::Relation] Books ordered by creation date (newest first)
+    # @example
+    #   # In controller:
+    #   @pagy, @books = pagy(BookService.paginated_books)
+    def paginated_books
+      Book.includes(:reviews).order(created_at: :desc)
+    end
+
     # Finds a specific book by ID with its associated reviews
     #
     # @param id [Integer, String] The book ID to find

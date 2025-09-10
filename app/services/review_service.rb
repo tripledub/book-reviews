@@ -144,20 +144,14 @@ class ReviewService
 
     # @!group Pagination and Search
 
-    # Retrieves reviews with manual pagination using limit/offset
+    # Retrieves reviews for pagination (to be used with controller's pagy method)
     #
-    # @param page [Integer] The page number (1-based, default: 1)
-    # @param per_page [Integer] Number of reviews per page (default: 20)
-    # @return [ActiveRecord::Relation] Paginated reviews with books, newest first
+    # @return [ActiveRecord::Relation] Reviews ordered by creation date (newest first)
     # @example
-    #   ReviewService.paginated_reviews(page: 1, per_page: 10)      # First 10 reviews
-    #   ReviewService.paginated_reviews(page: 2, per_page: 10)      # Reviews 11-20
-    def paginated_reviews(page: 1, per_page: 20)
-      offset = (page - 1) * per_page
-      Review.includes(:book)
-            .order(created_at: :desc)
-            .limit(per_page)
-            .offset(offset)
+    #   # In controller:
+    #   @pagy, @reviews = pagy(ReviewService.paginated_reviews)
+    def paginated_reviews
+      Review.includes(:book).order(created_at: :desc)
     end
 
     # Searches reviews by title or description using case-insensitive partial matching

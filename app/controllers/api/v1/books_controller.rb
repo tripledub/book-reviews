@@ -4,11 +4,12 @@ module Api
       include Response
       include ExceptionHandler
 
-      expose :books, -> { BookService.all_books }
       expose :book, -> { BookService.find_book(params[:id]) }
 
       def index
-        json_response(books.as_json(include: :reviews))
+        books_collection = BookService.paginated_books
+        @pagy, @books = pagy(books_collection)
+        json_response_with_pagination(@books.as_json(include: :reviews), @pagy)
       end
 
       def create

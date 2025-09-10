@@ -18,6 +18,7 @@ Rails.application.routes.draw do
     end
   end
 
+
   # Root route for React SPA
   root "application#index"
 

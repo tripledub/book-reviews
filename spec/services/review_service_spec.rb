@@ -231,31 +231,25 @@ RSpec.describe ReviewService, type: :service do
   end
 
   describe '.paginated_reviews' do
-    it 'returns the specified number of reviews per page' do
-      reviews = ReviewService.paginated_reviews(page: 1, per_page: 3)
+    it 'returns reviews ordered by creation date descending' do
+      reviews = ReviewService.paginated_reviews
 
-      expect(reviews.count).to eq(3)
-    end
-
-    it 'returns reviews for the specified page' do
-      reviews_page_1 = ReviewService.paginated_reviews(page: 1, per_page: 2)
-      reviews_page_2 = ReviewService.paginated_reviews(page: 2, per_page: 2)
-
-      expect(reviews_page_1).to include(review5, review4) # Most recent 2
-      expect(reviews_page_2).to include(review3, review2) # Next 2
-    end
-
-    it 'orders reviews by creation date descending' do
-      reviews = ReviewService.paginated_reviews(page: 1, per_page: 3)
-
-      expect(reviews).to include(review5, review4, review3)
-      expect(reviews.count).to eq(3)
+      expect(reviews).to be_a(ActiveRecord::Relation)
+      expect(reviews).to include(review5, review4, review3, review2, review1)
+      expect(reviews.first).to eq(review5) # Most recent first
+      expect(reviews.last).to eq(review1) # Oldest last
     end
 
     it 'includes book association' do
-      reviews = ReviewService.paginated_reviews(page: 1, per_page: 1)
+      reviews = ReviewService.paginated_reviews
 
       expect(reviews.first.association(:book)).to be_loaded
+    end
+
+    it 'returns all reviews (no pagination applied)' do
+      reviews = ReviewService.paginated_reviews
+
+      expect(reviews.count).to eq(5) # All reviews
     end
   end
 end
