@@ -22,7 +22,20 @@ module Api
 
       def search
         books = BookService.search_books(params[:q])
-        json_response(books.as_json(include: :reviews))
+        # Return search results in the same format as paginated results
+        render json: {
+          pagy: {
+            count: books.count,
+            page: 1,
+            pages: 1,
+            limit: books.count,
+            from: 1,
+            to: books.count,
+            prev: nil,
+            next: nil
+          },
+          books: books.as_json(include: :reviews)
+        }
       end
 
       private

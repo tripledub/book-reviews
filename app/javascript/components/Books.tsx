@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Book, PaginatedResponse, PaginationMeta } from '../types'
+import { Book, PaginationMeta } from '../types'
 import SearchBar from './SearchBar'
 
 const Books: React.FC = () => {
@@ -24,10 +24,19 @@ const Books: React.FC = () => {
       const response = await fetch(url)
       if (!response.ok) throw new Error('Failed to fetch books')
       
-      const data: PaginatedResponse<Book> = await response.json()
-      setBooks(data.books)
-      setPagination(data.pagy)
-      setError(null)
+      const data = await response.json()
+      
+      // Defensive programming: ensure books is an array
+      if (data && Array.isArray(data.books)) {
+        setBooks(data.books)
+        setPagination(data.pagy)
+        setError(null)
+      } else {
+        console.error('Invalid response structure:', data)
+        setError('Invalid response format')
+        setBooks([])
+        setPagination(null)
+      }
     } catch (err) {
       setError('Failed to load books')
       console.error('Error fetching books:', err)
@@ -79,7 +88,7 @@ const Books: React.FC = () => {
 
       {/* Books Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {books.map((book) => (
+        {Array.isArray(books) && books.map((book) => (
           <Link
             key={book.id}
             to={`/books/${book.id}`}
@@ -127,7 +136,7 @@ const Books: React.FC = () => {
         ))}
       </div>
 
-      {books.length === 0 && !loading && (
+      {Array.isArray(books) && books.length === 0 && !loading && (
         <div className="text-center py-12">
           <div className="text-gray-500 text-lg">
             No books available.
