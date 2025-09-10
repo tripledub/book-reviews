@@ -15,11 +15,14 @@ Rails.application.configure do
   case cache_backend
   when :memory
     require_relative "../../lib/cache_service/memory_cache"
-    CacheService.configure(CacheService::MemoryCache, **cache_options)
+    # MemoryCache doesn't accept any options
+    CacheService.configure(CacheService::MemoryCache)
 
   when :file
     require_relative "../../lib/cache_service/file_cache"
-    CacheService.configure(CacheService::FileCache, **cache_options)
+    # FileCache only accepts cache_dir option
+    file_options = cache_options.slice(:cache_dir)
+    CacheService.configure(CacheService::FileCache, **file_options)
 
   when :redis
     # Redis implementation would go here

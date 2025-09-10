@@ -54,7 +54,14 @@ Rails.application.configure do
   # Can be overridden with environment variables
   config.book_review_cache_backend = ENV.fetch("BOOK_REVIEW_CACHE_BACKEND", "file").to_sym
   config.book_review_cache_options = {
-    cache_dir: ENV.fetch("BOOK_REVIEW_CACHE_DIR", File.join(Rails.root, "tmp", "cache", "book_review"))
+    # File cache options
+    cache_dir: ENV.fetch("BOOK_REVIEW_CACHE_DIR", File.join(Rails.root, "tmp", "cache", "book_review")),
+
+    # Redis options (used when BOOK_REVIEW_CACHE_BACKEND=redis)
+    redis_url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
+    redis_timeout: ENV.fetch("REDIS_TIMEOUT", "5").to_i,
+    redis_pool_size: ENV.fetch("REDIS_POOL_SIZE", "5").to_i,
+    redis_pool_timeout: ENV.fetch("REDIS_POOL_TIMEOUT", "5").to_i
   }
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
