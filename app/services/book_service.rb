@@ -13,11 +13,8 @@ class BookService
     # Create a new book
     def create_book(attributes)
       book = Book.new(attributes)
-      if book.save
-        { success: true, book: book.reload }
-      else
-        { success: false, errors: book.errors.full_messages }
-      end
+      book.save!
+      book.reload
     end
 
     # Search books by title or author

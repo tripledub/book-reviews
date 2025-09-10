@@ -53,24 +53,22 @@ RSpec.describe BookService, type: :service do
 
     context 'with valid attributes' do
       it 'creates and returns the book' do
-        result = BookService.create_book(valid_attributes)
+        book = BookService.create_book(valid_attributes)
 
-        expect(result[:success]).to be true
-        expect(result[:book]).to be_a(Book)
-        expect(result[:book].title).to eq("New Book")
-        expect(result[:book].author).to eq("New Author")
+        expect(book).to be_a(Book)
+        expect(book.title).to eq("New Book")
+        expect(book.author).to eq("New Author")
+        expect(book.persisted?).to be true
       end
     end
 
     context 'with invalid attributes' do
       let(:invalid_attributes) { { title: "", author: "" } }
 
-      it 'returns error messages' do
-        result = BookService.create_book(invalid_attributes)
-
-        expect(result[:success]).to be false
-        expect(result[:errors]).to include("Title can't be blank")
-        expect(result[:errors]).to include("Author can't be blank")
+      it 'raises RecordInvalid exception' do
+        expect {
+          BookService.create_book(invalid_attributes)
+        }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
   end

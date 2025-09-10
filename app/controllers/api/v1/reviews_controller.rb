@@ -1,19 +1,19 @@
 module Api
   module V1
     class ReviewsController < ApplicationController
-      expose :review_result, -> { ReviewService.create_review(review_params) }
+      include Response
+      include ExceptionHandler
 
       def create
-        if review_result[:success]
-          render json: review_result[:review].as_json(include: :book), status: :created
-        else
-          render json: { errors: review_result[:errors] }, status: :unprocessable_entity
-        end
-      rescue ActionController::ParameterMissing
-        render json: { error: "Review parameters are required" }, status: :bad_request
+        save_review
       end
 
       private
+
+      def save_review
+        review = ReviewService.create_review(review_params)
+        json_response(review.as_json(include: :book), :created)
+      end
 
       def review_params
         params.require(:review).permit(:title, :description, :score, :book_id)

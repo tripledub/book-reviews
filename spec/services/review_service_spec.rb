@@ -22,25 +22,23 @@ RSpec.describe ReviewService, type: :service do
 
     context 'with valid attributes' do
       it 'creates and returns the review' do
-        result = ReviewService.create_review(valid_attributes)
+        review = ReviewService.create_review(valid_attributes)
 
-        expect(result[:success]).to be true
-        expect(result[:review]).to be_a(Review)
-        expect(result[:review].title).to eq("Amazing book!")
-        expect(result[:review].score).to eq(5)
-        expect(result[:review].book_id).to eq(book1.id)
+        expect(review).to be_a(Review)
+        expect(review.title).to eq("Amazing book!")
+        expect(review.score).to eq(5)
+        expect(review.book_id).to eq(book1.id)
+        expect(review.persisted?).to be true
       end
     end
 
     context 'with invalid attributes' do
       let(:invalid_attributes) { { title: "", score: 6, book_id: book1.id } }
 
-      it 'returns error messages' do
-        result = ReviewService.create_review(invalid_attributes)
-
-        expect(result[:success]).to be false
-        expect(result[:errors]).to include("Title can't be blank")
-        expect(result[:errors]).to include("Score is not included in the list")
+      it 'raises RecordInvalid exception' do
+        expect {
+          ReviewService.create_review(invalid_attributes)
+        }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
   end

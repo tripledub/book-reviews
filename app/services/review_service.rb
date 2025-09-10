@@ -3,11 +3,8 @@ class ReviewService
     # Create a new review
     def create_review(attributes)
       review = Review.new(attributes)
-      if review.save
-        { success: true, review: review.reload }
-      else
-        { success: false, errors: review.errors.full_messages }
-      end
+      review.save!
+      review.reload
     end
 
     # Get all reviews for a specific book
