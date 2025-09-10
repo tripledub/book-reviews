@@ -2,7 +2,7 @@ class BookService
   class << self
     # Get all books with their reviews
     def all_books
-      Book.includes(:reviews).order(created_at: :desc)
+      Book.includes(:reviews).recent
     end
 
     # Find a specific book by ID with reviews
@@ -23,43 +23,34 @@ class BookService
 
       Book.includes(:reviews)
           .where("title ILIKE ? OR author ILIKE ?", "%#{query}%", "%#{query}%")
-          .order(created_at: :desc)
+          .recent
     end
 
     # Get books by subject
     def books_by_subject(subject)
-      Book.includes(:reviews)
-          .where("subjects @> ARRAY[?]", subject)
-          .order(created_at: :desc)
+      Book.includes(:reviews).by_subject(subject).recent
     end
 
     # Get books by language
     def books_by_language(language)
-      Book.includes(:reviews)
-          .where("languages @> ARRAY[?]", language)
-          .order(created_at: :desc)
+      Book.includes(:reviews).by_language(language).recent
     end
 
     # Get books by author
     def books_by_author(author)
-      Book.includes(:reviews)
-          .where("author ILIKE ?", "%#{author}%")
-          .order(created_at: :desc)
+      Book.includes(:reviews).by_author(author).recent
     end
 
-    # Get books with high ratings (average score >= 4)
-    def highly_rated_books
-      Book.joins(:reviews)
-          .group("books.id, books.title, books.author, books.subjects, books.languages, books.image, books.created_at, books.updated_at")
-          .having("AVG(reviews.score) >= ?", 4.0)
-          .order("AVG(reviews.score) DESC")
+    # Get books with high ratings (average score >= threshold)
+    def highly_rated_books(min_score = Book::HIGHLY_RATED_THRESHOLD)
+      # Use subquery for better performance - single query instead of two
+      Book.includes(:reviews)
+          .where(id: Book.highly_rated(min_score).select(:id))
     end
 
     # Get recently added books
-    def recent_books(limit = 10)
-      Book.includes(:reviews)
-          .order(created_at: :desc)
-          .limit(limit)
+    def recent_books(limit = Book::DEFAULT_RECENT_LIMIT)
+      Book.includes(:reviews).recent(limit)
     end
 
     # Get book statistics
@@ -68,7 +59,8 @@ class BookService
         total_books: Book.count,
         total_reviews: Review.count,
         average_rating: Review.average(:score)&.round(2),
-        books_with_reviews: Book.joins(:reviews).distinct.count
+        books_with_reviews: Book.with_reviews.count,
+        books_without_reviews: Book.without_reviews.count
       }
     end
   end

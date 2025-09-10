@@ -94,6 +94,24 @@ RSpec.describe Review, type: :model do
     end
   end
 
+  describe 'constants' do
+    it 'defines MIN_SCORE' do
+      expect(Review::MIN_SCORE).to eq(1)
+    end
+
+    it 'defines MAX_SCORE' do
+      expect(Review::MAX_SCORE).to eq(5)
+    end
+
+    it 'defines HIGH_RATED_THRESHOLD' do
+      expect(Review::HIGH_RATED_THRESHOLD).to eq(4)
+    end
+
+    it 'defines LOW_RATED_THRESHOLD' do
+      expect(Review::LOW_RATED_THRESHOLD).to eq(2)
+    end
+  end
+
   describe 'database constraints' do
     it 'prevents NULL title at database level' do
       expect {
