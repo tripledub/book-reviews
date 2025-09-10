@@ -79,9 +79,7 @@ module CacheKeys
   # @param pattern [String] Redis key pattern (supports wildcards)
   # @return [Array<String>] Array of matching cache keys
   def self.keys(pattern = "*")
-    # This will be implemented by the cache backend
-    # For now, return empty array - will be overridden by specific implementations
-    []
+    CacheService.keys(pattern)
   end
 
   # Generate pattern for all book-related keys

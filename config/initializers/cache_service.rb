@@ -18,24 +18,17 @@ Rails.application.configure do
     # MemoryCache doesn't accept any options
     CacheService.configure(CacheService::MemoryCache)
 
-  when :file
-    require_relative "../../lib/cache_service/file_cache"
-    # FileCache only accepts cache_dir option
-    file_options = cache_options.slice(:cache_dir)
-    CacheService.configure(CacheService::FileCache, **file_options)
-
   when :redis
-    # Redis implementation would go here
-    # require_relative '../../lib/cache_service/redis_cache'
-    # CacheService.configure(CacheService::RedisCache, **cache_options)
-
-    # For now, fall back to file cache
-    Rails.logger.warn("[CacheService] Redis backend not implemented, falling back to file cache")
-    require_relative "../../lib/cache_service/file_cache"
-    CacheService.configure(CacheService::FileCache, **cache_options)
+    require_relative "../../lib/cache_service/redis_cache"
+    # RedisCache accepts redis-specific options with correct parameter names
+    redis_options = {
+      url: cache_options[:redis_url],
+      timeout: cache_options[:redis_timeout]
+    }.compact
+    CacheService.configure(CacheService::RedisCache, **redis_options)
 
   else
-    raise ArgumentError, "Unknown cache backend: #{cache_backend}. Supported backends: :memory, :file, :redis"
+    raise ArgumentError, "Unknown cache backend: #{cache_backend}. Supported backends: :memory, :redis"
   end
 end
 

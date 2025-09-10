@@ -54,6 +54,9 @@ group :development, :test do
 
   # Generate fake data for tests
   gem "faker"
+  
+  # Time travel for testing
+  gem "timecop"
 end
 
 group :development do

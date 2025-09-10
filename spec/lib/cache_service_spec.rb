@@ -124,6 +124,33 @@ RSpec.describe CacheService do
     end
   end
 
+  describe '.keys' do
+    it 'returns all keys when no pattern specified' do
+      CacheService.set('key1', 'value1')
+      CacheService.set('key2', 'value2')
+
+      keys = CacheService.keys
+      expect(keys).to contain_exactly('key1', 'key2')
+    end
+
+    it 'returns matching keys with pattern' do
+      CacheService.set('book_review:books:page=1', 'value1')
+      CacheService.set('book_review:books:page=2', 'value2')
+      CacheService.set('book_review:search:query=abc', 'value3')
+
+      keys = CacheService.keys('book_review:books:*')
+      expect(keys).to contain_exactly('book_review:books:page=1', 'book_review:books:page=2')
+    end
+
+    it 'returns empty array when no keys match pattern' do
+      CacheService.set('key1', 'value1')
+      CacheService.set('key2', 'value2')
+
+      keys = CacheService.keys('nonexistent:*')
+      expect(keys).to be_empty
+    end
+  end
+
   describe '.stats' do
     it 'returns cache statistics' do
       CacheService.set('key1', 'value1')

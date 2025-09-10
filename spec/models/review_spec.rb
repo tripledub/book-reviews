@@ -161,4 +161,58 @@ RSpec.describe Review, type: :model do
       }.not_to raise_error
     end
   end
+
+  describe 'cache invalidation callbacks' do
+    describe '#invalidate_book_related_cache' do
+      it 'can be called without error' do
+        review = Review.new(
+          title: 'Great Book',
+          description: 'This is a wonderful book',
+          score: 5,
+          book: book
+        )
+
+        # Test that the method can be called without error
+        expect { review.send(:invalidate_book_related_cache) }.not_to raise_error
+      end
+    end
+
+    describe 'callback methods' do
+      it 'calls invalidate_book_related_cache on after_create' do
+        review = Review.new(
+          title: 'Great Book',
+          description: 'This is a wonderful book',
+          score: 5,
+          book: book
+        )
+
+        expect(review).to receive(:invalidate_book_related_cache)
+        review.send(:invalidate_cache_after_create)
+      end
+
+      it 'calls invalidate_book_related_cache on after_update' do
+        review = Review.new(
+          title: 'Great Book',
+          description: 'This is a wonderful book',
+          score: 5,
+          book: book
+        )
+
+        expect(review).to receive(:invalidate_book_related_cache)
+        review.send(:invalidate_cache_after_update)
+      end
+
+      it 'calls invalidate_book_related_cache on after_destroy' do
+        review = Review.new(
+          title: 'Great Book',
+          description: 'This is a wonderful book',
+          score: 5,
+          book: book
+        )
+
+        expect(review).to receive(:invalidate_book_related_cache)
+        review.send(:invalidate_cache_after_destroy)
+      end
+    end
+  end
 end

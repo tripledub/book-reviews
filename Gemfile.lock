@@ -352,6 +352,7 @@ GEM
     thruster (0.1.15-aarch64-linux)
     thruster (0.1.15-arm64-darwin)
     thruster (0.1.15-x86_64-linux)
+    timecop (0.9.10)
     timeout (0.4.3)
     tsort (0.2.0)
     tzinfo (2.0.6)
@@ -408,6 +409,7 @@ DEPENDENCIES
   solid_queue
   tailwindcss-rails
   thruster
+  timecop
   tzinfo-data
   web-console
 

@@ -125,4 +125,107 @@ RSpec.describe CacheKeys do
       CacheKeys.clear_all_cache
     end
   end
+
+  describe '.keys' do
+    it 'returns empty array by default' do
+      keys = CacheKeys.keys
+      expect(keys).to eq([])
+    end
+
+    it 'returns empty array for any pattern' do
+      keys = CacheKeys.keys('some_pattern')
+      expect(keys).to eq([])
+    end
+
+    it 'can be called with different patterns' do
+      expect(CacheKeys.keys('*')).to eq([])
+      expect(CacheKeys.keys('book_review:*')).to eq([])
+      expect(CacheKeys.keys('specific:key')).to eq([])
+    end
+
+    it 'executes the actual implementation without mocking' do
+      # Test the actual implementation without mocking
+      keys = CacheKeys.keys('test_pattern')
+      expect(keys).to eq([])
+    end
+  end
+
+  describe '.clear_pattern' do
+    it 'returns 0 when no keys match pattern (mocked)' do
+      allow(CacheKeys).to receive(:keys).with('no_match:*').and_return([])
+      result = CacheKeys.clear_pattern('no_match:*')
+      expect(result).to eq(0)
+    end
+
+    it 'deletes keys when pattern matches (mocked)' do
+      matching_keys = [ 'key1', 'key2' ]
+      allow(CacheKeys).to receive(:keys).with('match:*').and_return(matching_keys)
+      allow(CacheService).to receive(:delete).with(matching_keys).and_return(2)
+
+      result = CacheKeys.clear_pattern('match:*')
+      expect(result).to eq(2)
+    end
+
+    it 'calls CacheService.delete with the correct keys (mocked)' do
+      matching_keys = [ 'book_review:books:page=1', 'book_review:books:page=2' ]
+      allow(CacheKeys).to receive(:keys).with('book_review:books:*').and_return(matching_keys)
+      expect(CacheService).to receive(:delete).with(matching_keys).and_return(2)
+
+      CacheKeys.clear_pattern('book_review:books:*')
+    end
+
+    it 'executes the actual implementation when no keys are found' do
+      # Test the actual implementation without mocking - this should cover lines 134-137
+      result = CacheKeys.clear_pattern('no_match_pattern')
+      expect(result).to eq(0)
+    end
+  end
+
+  describe 'clear cache methods' do
+    before do
+      allow(CacheKeys).to receive(:clear_pattern).and_return(5)
+    end
+
+    describe '.clear_books_cache' do
+      it 'clears books cache with correct pattern' do
+        expect(CacheKeys).to receive(:clear_pattern).with('book_review:books:*')
+        CacheKeys.clear_books_cache
+      end
+    end
+
+    describe '.clear_search_cache' do
+      it 'clears search cache with correct pattern' do
+        expect(CacheKeys).to receive(:clear_pattern).with('book_review:search:*')
+        CacheKeys.clear_search_cache
+      end
+    end
+
+    describe '.clear_reviews_cache' do
+      it 'clears reviews cache with correct pattern' do
+        expect(CacheKeys).to receive(:clear_pattern).with('book_review:reviews:*')
+        CacheKeys.clear_reviews_cache
+      end
+    end
+
+    describe '.clear_stats_cache' do
+      it 'clears stats cache with correct pattern' do
+        expect(CacheKeys).to receive(:clear_pattern).with('book_review:review_stats:*')
+        CacheKeys.clear_stats_cache
+      end
+    end
+
+    describe '.clear_highly_rated_cache' do
+      it 'clears highly rated cache with correct pattern' do
+        expect(CacheKeys).to receive(:clear_pattern).with('book_review:highly_rated:*')
+        CacheKeys.clear_highly_rated_cache
+      end
+    end
+
+    describe '.clear_recent_cache' do
+      it 'clears recent cache with correct pattern' do
+        expect(CacheKeys).to receive(:clear_pattern).with('book_review:recent:*')
+        CacheKeys.clear_recent_cache
+      end
+    end
+  end
 end

@@ -50,13 +50,10 @@ Rails.application.configure do
   config.cache_store = :solid_cache_store
 
   # Custom cache configuration for Book Review application
-  # Use file cache for production (persistent, no external dependencies)
+  # Use Redis cache for production (persistent, scalable, fast)
   # Can be overridden with environment variables
-  config.book_review_cache_backend = ENV.fetch("BOOK_REVIEW_CACHE_BACKEND", "file").to_sym
+  config.book_review_cache_backend = ENV.fetch("BOOK_REVIEW_CACHE_BACKEND", "redis").to_sym
   config.book_review_cache_options = {
-    # File cache options
-    cache_dir: ENV.fetch("BOOK_REVIEW_CACHE_DIR", File.join(Rails.root, "tmp", "cache", "book_review")),
-
     # Redis options (used when BOOK_REVIEW_CACHE_BACKEND=redis)
     redis_url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
     redis_timeout: ENV.fetch("REDIS_TIMEOUT", "5").to_i,

@@ -414,4 +414,72 @@ RSpec.describe Book, type: :model do
       end
     end
   end
+
+  describe 'cache invalidation callbacks' do
+    let(:book) { Book.new(title: 'Test Book', author: 'Test Author', subjects: [ 'Fiction' ], languages: [ 'en' ]) }
+
+    before do
+      # Mock BookService methods to verify they're called
+      allow(BookService).to receive(:invalidate_all_books_cache)
+      allow(BookService).to receive(:invalidate_recent_cache)
+      allow(BookService).to receive(:invalidate_highly_rated_cache)
+      allow(BookService).to receive(:invalidate_book_cache)
+      allow(BookService).to receive(:invalidate_search_cache)
+    end
+
+    describe 'after_create' do
+      it 'invalidates cache after book creation' do
+        book.save!
+
+        expect(BookService).to have_received(:invalidate_all_books_cache)
+        expect(BookService).to have_received(:invalidate_recent_cache)
+        expect(BookService).to have_received(:invalidate_highly_rated_cache)
+      end
+    end
+
+    describe 'after_update' do
+      it 'invalidates cache after book update' do
+        book.save!
+
+        # Clear previous calls and reset mocks
+        RSpec::Mocks.space.proxy_for(BookService).reset
+        allow(BookService).to receive(:invalidate_all_books_cache)
+        allow(BookService).to receive(:invalidate_recent_cache)
+        allow(BookService).to receive(:invalidate_highly_rated_cache)
+        allow(BookService).to receive(:invalidate_book_cache)
+        allow(BookService).to receive(:invalidate_search_cache)
+
+        book.update!(title: 'Updated Title')
+
+        expect(BookService).to have_received(:invalidate_book_cache).with(book.id)
+        expect(BookService).to have_received(:invalidate_all_books_cache)
+        expect(BookService).to have_received(:invalidate_search_cache)
+        expect(BookService).to have_received(:invalidate_recent_cache)
+        expect(BookService).to have_received(:invalidate_highly_rated_cache)
+      end
+    end
+
+    describe 'after_destroy' do
+      it 'invalidates cache after book destruction' do
+        book.save!
+        book_id = book.id
+
+        # Clear previous calls and reset mocks
+        RSpec::Mocks.space.proxy_for(BookService).reset
+        allow(BookService).to receive(:invalidate_all_books_cache)
+        allow(BookService).to receive(:invalidate_recent_cache)
+        allow(BookService).to receive(:invalidate_highly_rated_cache)
+        allow(BookService).to receive(:invalidate_book_cache)
+        allow(BookService).to receive(:invalidate_search_cache)
+
+        book.destroy
+
+        expect(BookService).to have_received(:invalidate_book_cache).with(book_id)
+        expect(BookService).to have_received(:invalidate_all_books_cache)
+        expect(BookService).to have_received(:invalidate_search_cache)
+        expect(BookService).to have_received(:invalidate_recent_cache)
+        expect(BookService).to have_received(:invalidate_highly_rated_cache)
+      end
+    end
+  end
 end
