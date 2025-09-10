@@ -1,8 +1,11 @@
 module Api
   module V1
     class BooksController < ApplicationController
+      expose :books, -> { BookService.all_books }
+      expose :book, -> { BookService.find_book(params[:id]) }
+      expose :search_result, -> { BookService.search_books(params[:q]) }
+
       def index
-        books = BookService.all_books
         render json: books.as_json(include: :reviews)
       end
 
@@ -16,18 +19,16 @@ module Api
       end
 
       def show
-        book = BookService.find_book(params[:id])
         render json: book.as_json(include: :reviews)
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Book not found" }, status: :not_found
       end
 
       def search
-        result = BookService.search_books(params[:q])
-        if result[:success]
-          render json: result[:books].as_json(include: :reviews)
+        if search_result[:success]
+          render json: search_result[:books].as_json(include: :reviews)
         else
-          render json: { error: result[:error] }, status: :bad_request
+          render json: { error: search_result[:error] }, status: :bad_request
         end
       end
 
