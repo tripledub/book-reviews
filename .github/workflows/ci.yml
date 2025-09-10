@@ -57,7 +57,7 @@ jobs:
         run: bundle exec rspec
 
       - name: Upload Ruby coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           file: ./coverage/.resultset.json
           flags: ruby
@@ -67,7 +67,7 @@ jobs:
         run: npm run test:js:coverage
 
       - name: Upload JavaScript coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           file: ./coverage/lcov.info
           flags: javascript
