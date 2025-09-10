@@ -38,7 +38,7 @@ RSpec.describe "Api::V1::Books", type: :request do
 
     it "returns unprocessable entity for invalid params" do
       post "/api/v1/books", params: { book: { title: "" } }
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

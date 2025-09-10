@@ -76,50 +76,44 @@ RSpec.describe BookService, type: :service do
   describe '.search_books' do
     context 'with valid query' do
       it 'returns books matching title' do
-        result = BookService.search_books("Ruby")
+        books = BookService.search_books("Ruby")
 
-        expect(result[:success]).to be true
-        expect(result[:books]).to include(book1)
-        expect(result[:books]).not_to include(book2, book3)
+        expect(books).to include(book1)
+        expect(books).not_to include(book2, book3)
       end
 
       it 'returns books matching author' do
-        result = BookService.search_books("Jane")
+        books = BookService.search_books("Jane")
 
-        expect(result[:success]).to be true
-        expect(result[:books]).to include(book2)
-        expect(result[:books]).not_to include(book1, book3)
+        expect(books).to include(book2)
+        expect(books).not_to include(book1, book3)
       end
 
       it 'is case insensitive' do
-        result = BookService.search_books("ruby")
+        books = BookService.search_books("ruby")
 
-        expect(result[:success]).to be true
-        expect(result[:books]).to include(book1)
+        expect(books).to include(book1)
       end
 
       it 'returns books ordered by creation date' do
-        result = BookService.search_books("Programming")
+        books = BookService.search_books("Programming")
 
-        expect(result[:success]).to be true
-        expect(result[:books].count).to eq(1) # Only book1 has "Programming" in title
-        expect(result[:books]).to include(book1)
+        expect(books.count).to eq(1) # Only book1 has "Programming" in title
+        expect(books).to include(book1)
       end
     end
 
     context 'with blank query' do
-      it 'returns error message' do
-        result = BookService.search_books("")
-
-        expect(result[:success]).to be false
-        expect(result[:error]).to eq("Search query is required")
+      it 'raises ArgumentError' do
+        expect {
+          BookService.search_books("")
+        }.to raise_error(ArgumentError, "Search query is required")
       end
 
-      it 'returns error message for nil query' do
-        result = BookService.search_books(nil)
-
-        expect(result[:success]).to be false
-        expect(result[:error]).to eq("Search query is required")
+      it 'raises ArgumentError for nil query' do
+        expect {
+          BookService.search_books(nil)
+        }.to raise_error(ArgumentError, "Search query is required")
       end
     end
   end

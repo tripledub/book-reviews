@@ -6,7 +6,6 @@ module Api
 
       expose :books, -> { BookService.all_books }
       expose :book, -> { BookService.find_book(params[:id]) }
-      expose :search_result, -> { BookService.search_books(params[:q]) }
 
       def index
         json_response(books.as_json(include: :reviews))
@@ -21,11 +20,8 @@ module Api
       end
 
       def search
-        if search_result[:success]
-          json_response(search_result[:books].as_json(include: :reviews))
-        else
-          json_response({ error: search_result[:error] }, :bad_request)
-        end
+        books = BookService.search_books(params[:q])
+        json_response(books.as_json(include: :reviews))
       end
 
       private

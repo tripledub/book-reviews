@@ -39,13 +39,13 @@ RSpec.describe "Api::V1::Reviews", type: :request do
         }
 
         post "/api/v1/reviews", params: review_params
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         json_response = JSON.parse(response.body)
         expect(json_response["errors"]).to include("Title can't be blank")
       end
 
-      it "returns unprocessable entity for missing description" do
+      it "returns unprocessable content for missing description" do
         review_params = {
           review: {
             title: "Great Book",
@@ -55,13 +55,13 @@ RSpec.describe "Api::V1::Reviews", type: :request do
         }
 
         post "/api/v1/reviews", params: review_params
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         json_response = JSON.parse(response.body)
         expect(json_response["errors"]).to include("Description can't be blank")
       end
 
-      it "returns unprocessable entity for missing score" do
+      it "returns unprocessable content for missing score" do
         review_params = {
           review: {
             title: "Great Book",
@@ -71,13 +71,13 @@ RSpec.describe "Api::V1::Reviews", type: :request do
         }
 
         post "/api/v1/reviews", params: review_params
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         json_response = JSON.parse(response.body)
         expect(json_response["errors"]).to include("Score can't be blank")
       end
 
-      it "returns unprocessable entity for invalid score" do
+      it "returns unprocessable content for invalid score" do
         review_params = {
           review: {
             title: "Great Book",
@@ -88,13 +88,13 @@ RSpec.describe "Api::V1::Reviews", type: :request do
         }
 
         post "/api/v1/reviews", params: review_params
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         json_response = JSON.parse(response.body)
         expect(json_response["errors"]).to include("Score is not included in the list")
       end
 
-      it "returns unprocessable entity for score below 1" do
+      it "returns unprocessable content for score below 1" do
         review_params = {
           review: {
             title: "Great Book",
@@ -105,13 +105,13 @@ RSpec.describe "Api::V1::Reviews", type: :request do
         }
 
         post "/api/v1/reviews", params: review_params
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         json_response = JSON.parse(response.body)
         expect(json_response["errors"]).to include("Score is not included in the list")
       end
 
-      it "returns unprocessable entity for invalid book_id" do
+      it "returns unprocessable content for invalid book_id" do
         review_params = {
           review: {
             title: "Great Book",
@@ -122,7 +122,7 @@ RSpec.describe "Api::V1::Reviews", type: :request do
         }
 
         post "/api/v1/reviews", params: review_params
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         json_response = JSON.parse(response.body)
         expect(json_response["errors"]).to include("Book must exist")

@@ -19,13 +19,11 @@ class BookService
 
     # Search books by title or author
     def search_books(query)
-      return { success: false, error: "Search query is required" } if query.blank?
+      raise ArgumentError, "Search query is required" if query.blank?
 
-      books = Book.includes(:reviews)
-                  .where("title ILIKE ? OR author ILIKE ?", "%#{query}%", "%#{query}%")
-                  .order(created_at: :desc)
-
-      { success: true, books: books }
+      Book.includes(:reviews)
+          .where("title ILIKE ? OR author ILIKE ?", "%#{query}%", "%#{query}%")
+          .order(created_at: :desc)
     end
 
     # Get books by subject
