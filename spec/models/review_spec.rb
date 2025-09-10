@@ -93,4 +93,54 @@ RSpec.describe Review, type: :model do
       expect(review.macro).to eq :belongs_to
     end
   end
+
+  describe 'database constraints' do
+    it 'prevents NULL title at database level' do
+      expect {
+        Review.connection.execute("INSERT INTO reviews (description, score, book_id, created_at, updated_at) VALUES ('Great book', 5, #{book.id}, NOW(), NOW())")
+      }.to raise_error(ActiveRecord::NotNullViolation, /null value in column "title"/)
+    end
+
+    it 'prevents NULL description at database level' do
+      expect {
+        Review.connection.execute("INSERT INTO reviews (title, score, book_id, created_at, updated_at) VALUES ('Great Book', 5, #{book.id}, NOW(), NOW())")
+      }.to raise_error(ActiveRecord::NotNullViolation, /null value in column "description"/)
+    end
+
+    it 'prevents NULL score at database level' do
+      expect {
+        Review.connection.execute("INSERT INTO reviews (title, description, book_id, created_at, updated_at) VALUES ('Great Book', 'Great book', #{book.id}, NOW(), NOW())")
+      }.to raise_error(ActiveRecord::NotNullViolation, /null value in column "score"/)
+    end
+
+    it 'prevents score below 1 at database level' do
+      expect {
+        Review.connection.execute("INSERT INTO reviews (title, description, score, book_id, created_at, updated_at) VALUES ('Great Book', 'Great book', 0, #{book.id}, NOW(), NOW())")
+      }.to raise_error(ActiveRecord::StatementInvalid, /violates check constraint "reviews_score_range"/)
+    end
+
+    it 'prevents score above 5 at database level' do
+      expect {
+        Review.connection.execute("INSERT INTO reviews (title, description, score, book_id, created_at, updated_at) VALUES ('Great Book', 'Great book', 6, #{book.id}, NOW(), NOW())")
+      }.to raise_error(ActiveRecord::StatementInvalid, /violates check constraint "reviews_score_range"/)
+    end
+
+    it 'prevents empty title at database level' do
+      expect {
+        Review.connection.execute("INSERT INTO reviews (title, description, score, book_id, created_at, updated_at) VALUES ('   ', 'Great book', 5, #{book.id}, NOW(), NOW())")
+      }.to raise_error(ActiveRecord::StatementInvalid, /violates check constraint "reviews_title_not_empty"/)
+    end
+
+    it 'prevents empty description at database level' do
+      expect {
+        Review.connection.execute("INSERT INTO reviews (title, description, score, book_id, created_at, updated_at) VALUES ('Great Book', '   ', 5, #{book.id}, NOW(), NOW())")
+      }.to raise_error(ActiveRecord::StatementInvalid, /violates check constraint "reviews_description_not_empty"/)
+    end
+
+    it 'allows valid score range at database level' do
+      expect {
+        Review.connection.execute("INSERT INTO reviews (title, description, score, book_id, created_at, updated_at) VALUES ('Great Book', 'Great book', 3, #{book.id}, NOW(), NOW())")
+      }.not_to raise_error
+    end
+  end
 end

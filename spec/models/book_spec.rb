@@ -62,4 +62,39 @@ RSpec.describe Book, type: :model do
       expect(book.languages).to eq([ 'en', 'fr' ])
     end
   end
+
+  describe 'database constraints' do
+    it 'prevents NULL title at database level' do
+      expect {
+        Book.connection.execute("INSERT INTO books (author, created_at, updated_at) VALUES ('Test Author', NOW(), NOW())")
+      }.to raise_error(ActiveRecord::NotNullViolation, /null value in column "title"/)
+    end
+
+    it 'prevents NULL author at database level' do
+      expect {
+        Book.connection.execute("INSERT INTO books (title, created_at, updated_at) VALUES ('Test Book', NOW(), NOW())")
+      }.to raise_error(ActiveRecord::NotNullViolation, /null value in column "author"/)
+    end
+
+    # Note: Array constraints are more complex to test due to PostgreSQL array handling
+    # The constraints are in place but testing them requires more sophisticated setup
+
+    it 'prevents invalid image URL format at database level' do
+      expect {
+        Book.connection.execute("INSERT INTO books (title, author, image, created_at, updated_at) VALUES ('Test Book', 'Test Author', 'invalid-url', NOW(), NOW())")
+      }.to raise_error(ActiveRecord::StatementInvalid, /violates check constraint "books_image_url_format"/)
+    end
+
+    it 'allows valid image URL format' do
+      expect {
+        Book.connection.execute("INSERT INTO books (title, author, image, created_at, updated_at) VALUES ('Test Book', 'Test Author', 'https://example.com/image.jpg', NOW(), NOW())")
+      }.not_to raise_error
+    end
+
+    it 'allows NULL image' do
+      expect {
+        Book.connection.execute("INSERT INTO books (title, author, created_at, updated_at) VALUES ('Test Book', 'Test Author', NOW(), NOW())")
+      }.not_to raise_error
+    end
+  end
 end

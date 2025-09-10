@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Api::V1::Books", type: :request do
-  let!(:book) { Book.create!(title: "Test Book", author: "Test Author", subjects: [ "Fiction" ], languages: [ "en" ], image: "test.jpg") }
+  let!(:book) { Book.create!(title: "Test Book", author: "Test Author", subjects: [ "Fiction" ], languages: [ "en" ], image: "https://example.com/test.jpg") }
   let!(:review) { Review.create!(book: book, title: "Great Book", description: "Amazing read", score: 5) }
 
   describe "GET /api/v1/books" do
@@ -24,7 +24,7 @@ RSpec.describe "Api::V1::Books", type: :request do
           author: "New Author",
           subjects: [ "Science Fiction" ],
           languages: [ "en" ],
-          image: "new.jpg"
+          image: "https://example.com/new.jpg"
         }
       }
 
