@@ -25,6 +25,20 @@ RSpec.describe CacheService do
 
         CacheService.fetch(test_key) { test_value }
       end
+
+      it 'handles block returning nil' do
+        result = CacheService.fetch(test_key) { nil }
+        expect(result).to be_nil
+        # Should not cache nil values
+        expect(CacheService.get(test_key)).to be_nil
+      end
+
+      it 'handles block returning false' do
+        result = CacheService.fetch(test_key) { false }
+        expect(result).to be false
+        # Should not cache false values
+        expect(CacheService.get(test_key)).to be_nil
+      end
     end
 
     context 'when cache hit' do

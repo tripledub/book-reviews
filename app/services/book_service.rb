@@ -13,44 +13,21 @@ class BookService
   class << self
     # @!group Basic Operations
 
-    # Retrieves all books with their associated reviews, ordered by creation date
-    #
-    # @return [ActiveRecord::Relation] All books with eager-loaded reviews, newest first
-    # @example
-    #   BookService.all_books
-    #   # => Returns all books with their reviews, ordered by created_at DESC
-    def all_books
-      Book.includes(:reviews).recent
-    end
 
-    # Retrieves books for pagination (to be used with controller's pagy method)
+    # Retrieves all books with caching (to be used with controller's pagy method)
     #
     # @return [ActiveRecord::Relation] Books ordered by creation date (newest first)
     # @example
     #   # In controller:
-    #   @pagy, @books = pagy(BookService.paginated_books)
-    def paginated_books
-      Book.includes(:reviews).order(created_at: :desc)
-    end
-
-    # Retrieves books for pagination with caching
-    #
-    # @param page [Integer] Page number (default: 1)
-    # @param limit [Integer] Items per page (default: 20)
-    # @return [Array<Hash>] Cached books data as JSON
-    # @example
-    #   BookService.cached_paginated_books(page: 1, limit: 20)
-    def cached_paginated_books(page: 1, limit: 20)
-      cache_key = CacheKeys::Book.paginated(page: page, limit: limit)
+    #   @pagy, @books = pagy(BookService.all_books)
+    def all_books
+      cache_key = CacheKeys::Book.paginated(page: 1, limit: 1000) # Large limit for "all" books
 
       CacheService.fetch(cache_key, expires_in: 1.hour) do
-        Book.includes(:reviews)
-            .order(created_at: :desc)
-            .limit(limit)
-            .offset((page - 1) * limit)
-            .as_json(include: :reviews)
+        Book.includes(:reviews).order(created_at: :desc)
       end
     end
+
 
     # Finds a specific book by ID with caching
     #
@@ -94,43 +71,25 @@ class BookService
 
     # @!group Search and Filter Operations
 
-    # Searches books by title or author using case-insensitive partial matching
+    # Searches books by title or author using case-insensitive partial matching with caching
     #
     # @param query [String] The search term to match against title or author
     # @return [ActiveRecord::Relation] Books matching the search query, newest first
     # @raise [ArgumentError] If query is blank or nil
     # @example
-    #   BookService.search_books("Tolkien")   # Find books by Tolkien
-    #   BookService.search_books("Hobbit")    # Find books with "Hobbit" in title
+    #   BookService.search_books("Tolkien")   # Find books by Tolkien (cached)
     def search_books(query)
       raise ArgumentError, "Search query is required" if query.blank?
 
-      Book.includes(:reviews)
-          .where("title ILIKE ? OR author ILIKE ?", "%#{query}%", "%#{query}%")
-          .recent
-    end
-
-    # Searches books by title or author with caching
-    #
-    # @param query [String] The search term to match against title or author
-    # @return [Array<Hash>] Cached search results as JSON
-    # @raise [ArgumentError] If query is blank or nil
-    # @example
-    #   BookService.cached_search_books("Tolkien")   # Find books by Tolkien (cached)
-    def cached_search_books(query, page: 1, limit: 20)
-      raise ArgumentError, "Search query is required" if query.blank?
-
-      cache_key = CacheKeys::Book.search(query, page: page, limit: limit)
+      cache_key = CacheKeys::Book.search(query, page: 1, limit: 1000) # Large limit for search results
 
       CacheService.fetch(cache_key, expires_in: 30.minutes) do
         Book.includes(:reviews)
             .where("title ILIKE ? OR author ILIKE ?", "%#{query}%", "%#{query}%")
             .recent
-            .limit(limit)
-            .offset((page - 1) * limit)
-            .as_json(include: :reviews)
       end
     end
+
 
     # Finds books that contain the specified subject
     #

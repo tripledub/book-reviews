@@ -10,23 +10,11 @@ RSpec.describe BookService, 'caching' do
     CacheService.clear
   end
 
-  describe '.cached_paginated_books' do
-    it 'caches paginated books data' do
-      # First call should cache the data
-      result1 = BookService.cached_paginated_books(page: 1, limit: 1)
-      expect(result1).to be_an(Array)
-      expect(result1.length).to eq(1)
-
-      # Second call should return cached data
-      result2 = BookService.cached_paginated_books(page: 1, limit: 1)
-      expect(result2).to eq(result1)
-    end
-
-    it 'uses correct cache key' do
-      expect(CacheKeys::Book).to receive(:paginated).with(page: 1, limit: 20).and_return('test_key')
-      expect(CacheService).to receive(:fetch).with('test_key', expires_in: 1.hour)
-
-      BookService.cached_paginated_books(page: 1, limit: 20)
+  describe '.all_books' do
+    it 'returns books relation for pagination' do
+      result = BookService.all_books
+      expect(result).to be_a(ActiveRecord::Relation)
+      expect(result.to_sql).to include('ORDER BY "books"."created_at" DESC')
     end
   end
 
@@ -54,29 +42,16 @@ RSpec.describe BookService, 'caching' do
     end
   end
 
-  describe '.cached_search_books' do
-    it 'caches search results' do
+  describe '.search_books' do
+    it 'returns search results relation' do
       query = book1.title.split.first
-
-      # First call should cache the data
-      result1 = BookService.cached_search_books(query)
-      expect(result1).to be_an(Array)
-
-      # Second call should return cached data
-      result2 = BookService.cached_search_books(query)
-      expect(result2).to eq(result1)
-    end
-
-    it 'uses correct cache key' do
-      query = 'test query'
-      expect(CacheKeys::Book).to receive(:search).with(query, page: 1, limit: 20).and_return('test_key')
-      expect(CacheService).to receive(:fetch).with('test_key', expires_in: 30.minutes)
-
-      BookService.cached_search_books(query)
+      result = BookService.search_books(query)
+      expect(result).to be_a(ActiveRecord::Relation)
+      expect(result.to_sql).to include('ILIKE')
     end
 
     it 'raises error for blank query' do
-      expect { BookService.cached_search_books('') }.to raise_error(ArgumentError, 'Search query is required')
+      expect { BookService.search_books('') }.to raise_error(ArgumentError, 'Search query is required')
     end
   end
 
@@ -122,8 +97,8 @@ RSpec.describe BookService, 'caching' do
     before do
       # Set up some cached data
       BookService.find_book(book1.id)
-      BookService.cached_paginated_books(page: 1, limit: 20)
-      BookService.cached_search_books('test')
+      BookService.all_books
+      BookService.search_books('test')
     end
 
     describe '.invalidate_book_cache' do

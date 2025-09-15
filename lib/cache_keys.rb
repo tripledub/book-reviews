@@ -40,11 +40,4 @@ module CacheKeys
 
     cache_service.delete(keys)
   end
-
-  # Clear all cache (use with caution!)
-  #
-  # @return [Integer] Number of keys deleted
-  def self.clear_all_cache
-    clear_pattern("book_review:*")
-  end
 end

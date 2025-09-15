@@ -30,18 +30,21 @@ module CacheService
     # @param key [String] Cache key
     # @param expires_in [Integer, ActiveSupport::Duration] TTL in seconds
     # @yield Block to execute on cache miss
-    # @return [Object] Cached data or block result
+    # @return [Object] Cached data or block result (always Ruby objects)
     def fetch(key, expires_in: nil, &block)
       raise ArgumentError, "Block required for fetch operation" unless block_given?
 
-      result = get(key)
+      # Get serialized data from backend
+      serialized_result = backend.get(key)
 
-      if result.nil?
+      if serialized_result.nil?
         Rails.logger.info("[CacheService] Cache miss for key: #{key}") if Rails.logger
         result = yield
         set(key, result, expires_in: expires_in) if result
       else
         Rails.logger.info("[CacheService] Cache hit for key: #{key}") if Rails.logger
+        # Deserialize the cached data back to Ruby objects
+        result = Marshal.load(serialized_result)
       end
 
       result
@@ -50,19 +53,24 @@ module CacheService
     # Get data from cache
     #
     # @param key [String] Cache key
-    # @return [Object, nil] Cached data or nil if not found/expired
+    # @return [Object, nil] Cached data or nil if not found/expired (always Ruby objects)
     def get(key)
-      backend.get(key)
+      serialized_data = backend.get(key)
+      return nil if serialized_data.nil?
+
+      Marshal.load(serialized_data)
     end
 
     # Set data in cache
     #
     # @param key [String] Cache key
-    # @param value [Object] Data to cache
+    # @param value [Object] Data to cache (will be serialized)
     # @param expires_in [Integer, ActiveSupport::Duration] TTL in seconds
     # @return [Boolean] Success status
     def set(key, value, expires_in: nil)
-      backend.set(key, value, expires_in: expires_in)
+      # Serialize the value before storing
+      serialized_value = Marshal.dump(value)
+      backend.set(key, serialized_value, expires_in: expires_in)
     end
 
     # Delete data from cache

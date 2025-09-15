@@ -29,7 +29,7 @@ class CacheService::MemoryCache < CacheService::Base
         return nil
       end
 
-      deserialize(@store[key])
+      @store[key]
     end
   end
 
@@ -41,7 +41,7 @@ class CacheService::MemoryCache < CacheService::Base
   # @return [Boolean] Success status
   def set(key, value, expires_in: nil)
     @mutex.synchronize do
-      @store[key] = serialize(value)
+      @store[key] = value
 
       if expires_in
         @expires[key] = Time.now + normalize_expires_in(expires_in)

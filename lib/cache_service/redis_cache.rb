@@ -27,7 +27,7 @@ class CacheService::RedisCache < CacheService::Base
       data = redis.get(key)
       return nil if data.nil?
 
-      deserialize(data)
+      data
     end
   rescue => e
     Rails.logger.error("[RedisCache] Error getting key #{key}: #{e.message}") if Rails.logger
@@ -42,13 +42,11 @@ class CacheService::RedisCache < CacheService::Base
   # @return [Boolean] Success status
   def set(key, value, expires_in: nil)
     with_connection do |redis|
-      serialized_value = serialize(value)
-
       if expires_in
         ttl = normalize_expires_in(expires_in)
-        redis.setex(key, ttl, serialized_value)
+        redis.setex(key, ttl, value)
       else
-        redis.set(key, serialized_value)
+        redis.set(key, value)
       end
 
       true

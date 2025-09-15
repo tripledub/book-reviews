@@ -26,8 +26,9 @@ RSpec.describe CacheService::RedisCache, type: :model do
     end
 
     it 'returns cached value' do
-      cache.set(test_key, test_value)
-      expect(cache.get(test_key)).to eq(test_value)
+      marshalled_value = Marshal.dump(test_value)
+      cache.set(test_key, marshalled_value)
+      expect(cache.get(test_key)).to eq(marshalled_value)
     end
 
     it 'returns nil for expired key' do
@@ -43,8 +44,9 @@ RSpec.describe CacheService::RedisCache, type: :model do
 
   describe '#set' do
     it 'stores value in cache' do
-      expect(cache.set(test_key, test_value)).to be true
-      expect(cache.get(test_key)).to eq(test_value)
+      marshalled_value = Marshal.dump(test_value)
+      expect(cache.set(test_key, marshalled_value)).to be true
+      expect(cache.get(test_key)).to eq(marshalled_value)
     end
 
     it 'returns true on success' do
@@ -400,14 +402,16 @@ RSpec.describe CacheService::RedisCache, type: :model do
         'nil_value' => nil
       }
 
-      cache.set('complex', complex_object)
+      marshalled_value = Marshal.dump(complex_object)
+      cache.set('complex', marshalled_value)
       retrieved = cache.get('complex')
-      expect(retrieved).to eq(complex_object)
+      expect(retrieved).to eq(marshalled_value)
     end
 
     it 'handles nil values' do
-      cache.set('nil_key', nil)
-      expect(cache.get('nil_key')).to be_nil
+      marshalled_nil = Marshal.dump(nil)
+      cache.set('nil_key', marshalled_nil)
+      expect(cache.get('nil_key')).to eq(marshalled_nil)
     end
   end
 

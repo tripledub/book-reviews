@@ -6,7 +6,7 @@ module Api
 
       expose :book, -> { BookService.find_book(params[:id]) }
       expose :search_results, -> { BookService.search_books(params[:q]) }
-      expose :books_collection, -> { BookService.paginated_books }
+      expose :books_collection, -> { BookService.all_books }
 
       def index
         pagy_object, books_array = pagy(books_collection)
