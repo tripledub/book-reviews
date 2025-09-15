@@ -25,8 +25,10 @@ module Api
       end
 
       def search
+        pagy_object, books_array = pagy(search_results)
         json_response({
-          books: search_results.as_json(include: :reviews)
+          pagy: pagy_metadata(pagy_object),
+          books: books_array.as_json(include: :reviews)
         })
       end
 
