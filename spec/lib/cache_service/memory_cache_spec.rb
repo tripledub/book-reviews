@@ -21,7 +21,7 @@ RSpec.describe CacheService::MemoryCache do
 
     it 'returns nil for expired key' do
       cache.set(test_key, test_value, expires_in: 1)
-      Timecop.travel(2.seconds.from_now)
+      travel_to 2.seconds.from_now
       expect(cache.get(test_key)).to be_nil
     end
   end
@@ -45,7 +45,7 @@ RSpec.describe CacheService::MemoryCache do
       expect(cache.get(test_key)).to eq(test_value)
 
       # Wait for expiration
-      Timecop.travel(2.seconds.from_now)
+      travel_to 2.seconds.from_now
       expect(cache.get(test_key)).to be_nil
     end
   end
@@ -85,7 +85,7 @@ RSpec.describe CacheService::MemoryCache do
 
     it 'returns false for expired key' do
       cache.set(test_key, test_value, expires_in: 1)
-      Timecop.travel(2.seconds.from_now) # Wait for expiration
+      travel_to 2.seconds.from_now # Wait for expiration
       expect(cache.exists?(test_key)).to be false
     end
   end
@@ -116,7 +116,7 @@ RSpec.describe CacheService::MemoryCache do
       cache.set('key1', 'value1', expires_in: 1)
       cache.set('key2', 'value2')
 
-      Timecop.travel(2.seconds.from_now) # Wait for expiration
+      travel_to 2.seconds.from_now # Wait for expiration
 
       stats = cache.stats
       expect(stats[:total_keys]).to eq(1)
@@ -164,7 +164,7 @@ RSpec.describe CacheService::MemoryCache do
       cache.set('key1', 'value1', expires_in: 1)
       cache.set('key2', 'value2')
 
-      Timecop.travel(2.seconds.from_now) # Wait for expiration
+      travel_to 2.seconds.from_now # Wait for expiration
 
       keys = cache.keys
       expect(keys).to contain_exactly('key2')
