@@ -70,7 +70,6 @@ RSpec.describe "Api::V1::Books", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(json_response).to have_key("books")
-      expect(json_response).to have_key("pagy")
       expect(json_response["books"]).to be_an(Array)
       expect(json_response["books"].first["title"]).to eq(book.title)
     end
@@ -86,7 +85,6 @@ RSpec.describe "Api::V1::Books", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(json_response).to have_key("books")
-      expect(json_response).to have_key("pagy")
       expect(json_response["books"]).to eq([])
     end
   end

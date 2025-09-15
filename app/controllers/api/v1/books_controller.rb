@@ -5,11 +5,15 @@ module Api
       include ExceptionHandler
 
       expose :book, -> { BookService.find_book(params[:id]) }
+      expose :search_results, -> { BookService.search_books(params[:q]) }
+      expose :books_collection, -> { BookService.paginated_books }
 
       def index
-        books_collection = BookService.paginated_books
-        @pagy, @books = pagy(books_collection)
-        json_response_with_pagination(@books.as_json(include: :reviews), @pagy)
+        pagy_object, books_array = pagy(books_collection)
+        json_response({
+          pagy: pagy_metadata(pagy_object),
+          books: books_array.as_json(include: :reviews)
+        })
       end
 
       def create
@@ -21,21 +25,9 @@ module Api
       end
 
       def search
-        books = BookService.search_books(params[:q])
-        # Return search results in the same format as paginated results
-        render json: {
-          pagy: {
-            count: books.count,
-            page: 1,
-            pages: 1,
-            limit: books.count,
-            from: 1,
-            to: books.count,
-            prev: nil,
-            next: nil
-          },
-          books: books.as_json(include: :reviews)
-        }
+        json_response({
+          books: search_results.as_json(include: :reviews)
+        })
       end
 
       private
