@@ -52,26 +52,14 @@ class BookService
       end
     end
 
-    # Finds a specific book by ID with its associated reviews
-    #
-    # @param id [Integer, String] The book ID to find
-    # @return [Book] The book with eager-loaded reviews
-    # @raise [ActiveRecord::RecordNotFound] If book with given ID doesn't exist
-    # @example
-    #   BookService.find_book(1)              # Find book with ID 1
-    #   BookService.find_book("123")          # Find book with ID "123"
-    def find_book(id)
-      Book.includes(:reviews).find(id)
-    end
-
     # Finds a specific book by ID with caching
     #
     # @param id [Integer, String] The book ID to find
     # @return [Hash] The book data as JSON with reviews
     # @raise [ActiveRecord::RecordNotFound] If book with given ID doesn't exist
     # @example
-    #   BookService.cached_find_book(1)       # Find book with ID 1 (cached)
-    def cached_find_book(id)
+    #   BookService.find_book(1)              # Find book with ID 1 (cached)
+    def find_book(id)
       cache_key = CacheKeys::Book.find(id)
 
       CacheService.fetch(cache_key, expires_in: 2.hours) do

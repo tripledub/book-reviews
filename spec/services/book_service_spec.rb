@@ -27,11 +27,13 @@ RSpec.describe BookService, type: :service do
   end
 
   describe '.find_book' do
-    it 'returns the book with reviews' do
-      book = BookService.find_book(book1.id)
+    it 'returns the book as JSON with reviews' do
+      book_data = BookService.find_book(book1.id)
 
-      expect(book).to eq(book1)
-      expect(book.association(:reviews)).to be_loaded
+      expect(book_data).to be_a(Hash)
+      expect(book_data['id']).to eq(book1.id)
+      expect(book_data['title']).to eq(book1.title)
+      expect(book_data['reviews']).to be_an(Array)
     end
 
     it 'raises RecordNotFound for non-existent book' do

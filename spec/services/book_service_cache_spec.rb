@@ -30,15 +30,15 @@ RSpec.describe BookService, 'caching' do
     end
   end
 
-  describe '.cached_find_book' do
+  describe '.find_book' do
     it 'caches book data' do
       # First call should cache the data
-      result1 = BookService.cached_find_book(book1.id)
+      result1 = BookService.find_book(book1.id)
       expect(result1).to be_a(Hash)
       expect(result1['id']).to eq(book1.id)
 
       # Second call should return cached data
-      result2 = BookService.cached_find_book(book1.id)
+      result2 = BookService.find_book(book1.id)
       expect(result2).to eq(result1)
     end
 
@@ -46,11 +46,11 @@ RSpec.describe BookService, 'caching' do
       expect(CacheKeys::Book).to receive(:find).with(book1.id).and_return('test_key')
       expect(CacheService).to receive(:fetch).with('test_key', expires_in: 2.hours)
 
-      BookService.cached_find_book(book1.id)
+      BookService.find_book(book1.id)
     end
 
     it 'raises error for non-existent book' do
-      expect { BookService.cached_find_book(999999) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect { BookService.find_book(999999) }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 
@@ -121,7 +121,7 @@ RSpec.describe BookService, 'caching' do
   describe 'cache invalidation methods' do
     before do
       # Set up some cached data
-      BookService.cached_find_book(book1.id)
+      BookService.find_book(book1.id)
       BookService.cached_paginated_books(page: 1, limit: 20)
       BookService.cached_search_books('test')
     end

@@ -4,7 +4,7 @@ module Api
       include Response
       include ExceptionHandler
 
-      expose :book, -> { BookService.cached_find_book(params[:id]) }
+      expose :book, -> { BookService.find_book(params[:id]) }
       expose :search_results, -> { BookService.search_books(params[:q]) }
       expose :books_collection, -> { BookService.paginated_books }
 

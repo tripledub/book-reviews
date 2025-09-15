@@ -27,8 +27,13 @@ Rails.application.configure do
     }.compact
     CacheService.configure(CacheService::RedisCache, **redis_options)
 
+  when :null, :none
+    require_relative "../../lib/cache_service/null_cache"
+    # NullCache doesn't accept any options
+    CacheService.configure(CacheService::NullCache)
+
   else
-    raise ArgumentError, "Unknown cache backend: #{cache_backend}. Supported backends: :memory, :redis"
+    raise ArgumentError, "Unknown cache backend: #{cache_backend}. Supported backends: :memory, :redis, :null, :none"
   end
 end
 
