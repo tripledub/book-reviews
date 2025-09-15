@@ -70,7 +70,7 @@ class CacheService::Base
   # @param value [Object] Value to serialize
   # @return [String] Serialized value
   def serialize(value)
-    JSON.generate(value)
+    Marshal.dump(value)
   end
 
   # Deserialize value from storage
@@ -78,7 +78,7 @@ class CacheService::Base
   # @param data [String] Serialized data
   # @return [Object] Deserialized value
   def deserialize(data)
-    JSON.parse(data)
+    Marshal.load(data)
   end
 
   # Convert expires_in to seconds

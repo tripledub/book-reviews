@@ -23,7 +23,7 @@ RSpec.describe BookService, 'caching' do
     end
 
     it 'uses correct cache key' do
-      expect(CacheKeys).to receive(:books).with(page: 1, limit: 20).and_return('test_key')
+      expect(CacheKeys::Book).to receive(:paginated).with(page: 1, limit: 20).and_return('test_key')
       expect(CacheService).to receive(:fetch).with('test_key', expires_in: 1.hour)
 
       BookService.cached_paginated_books(page: 1, limit: 20)
@@ -43,7 +43,7 @@ RSpec.describe BookService, 'caching' do
     end
 
     it 'uses correct cache key' do
-      expect(CacheKeys).to receive(:book).with(book1.id).and_return('test_key')
+      expect(CacheKeys::Book).to receive(:find).with(book1.id).and_return('test_key')
       expect(CacheService).to receive(:fetch).with('test_key', expires_in: 2.hours)
 
       BookService.cached_find_book(book1.id)
@@ -69,7 +69,7 @@ RSpec.describe BookService, 'caching' do
 
     it 'uses correct cache key' do
       query = 'test query'
-      expect(CacheKeys).to receive(:search_books).with(query).and_return('test_key')
+      expect(CacheKeys::Book).to receive(:search).with(query, page: 1, limit: 20).and_return('test_key')
       expect(CacheService).to receive(:fetch).with('test_key', expires_in: 30.minutes)
 
       BookService.cached_search_books(query)
@@ -92,7 +92,7 @@ RSpec.describe BookService, 'caching' do
     end
 
     it 'uses correct cache key' do
-      expect(CacheKeys).to receive(:highly_rated_books).with(limit: 10).and_return('test_key')
+      expect(CacheKeys::Book).to receive(:highly_rated).with(limit: 10).and_return('test_key')
       expect(CacheService).to receive(:fetch).with('test_key', expires_in: 1.hour)
 
       BookService.cached_highly_rated_books(limit: 10)
@@ -111,7 +111,7 @@ RSpec.describe BookService, 'caching' do
     end
 
     it 'uses correct cache key' do
-      expect(CacheKeys).to receive(:recent_books).with(limit: 10).and_return('test_key')
+      expect(CacheKeys::Book).to receive(:recent).with(limit: 10).and_return('test_key')
       expect(CacheService).to receive(:fetch).with('test_key', expires_in: 30.minutes)
 
       BookService.cached_recent_books(limit: 10)
@@ -128,49 +128,55 @@ RSpec.describe BookService, 'caching' do
 
     describe '.invalidate_book_cache' do
       it 'clears cache for specific book' do
-        expect(CacheKeys).to receive(:clear_book_cache).with(book1.id)
+        expect(CacheKeys::Book).to receive(:pattern_for_book).with(book1.id).and_return('pattern')
+        expect(CacheService).to receive(:keys).with('pattern').and_return([ 'key1', 'key2' ])
+        expect(CacheService).to receive(:delete).with([ 'key1', 'key2' ]).and_return(2)
         BookService.invalidate_book_cache(book1.id)
       end
     end
 
     describe '.invalidate_all_books_cache' do
       it 'clears all books cache' do
-        expect(CacheKeys).to receive(:clear_books_cache)
+        expect(CacheKeys::Book).to receive(:clear_all).and_return(5)
         BookService.invalidate_all_books_cache
       end
     end
 
     describe '.invalidate_search_cache' do
       it 'clears search cache' do
-        expect(CacheKeys).to receive(:clear_search_cache)
+        expect(CacheKeys::Book).to receive(:clear_search).and_return(3)
         BookService.invalidate_search_cache
       end
     end
 
     describe '.invalidate_stats_cache' do
       it 'clears stats cache' do
-        expect(CacheKeys).to receive(:clear_stats_cache)
-        BookService.invalidate_stats_cache
+        # This method now returns 0 for backward compatibility
+        result = BookService.invalidate_stats_cache
+        expect(result).to eq(0)
       end
     end
 
     describe '.invalidate_highly_rated_cache' do
       it 'clears highly rated cache' do
-        expect(CacheKeys).to receive(:clear_highly_rated_cache)
+        expect(CacheService).to receive(:keys).with('book_review:book:highly_rated:*').and_return([ 'key1' ])
+        expect(CacheService).to receive(:delete).with([ 'key1' ]).and_return(1)
         BookService.invalidate_highly_rated_cache
       end
     end
 
     describe '.invalidate_recent_cache' do
       it 'clears recent cache' do
-        expect(CacheKeys).to receive(:clear_recent_cache)
+        expect(CacheService).to receive(:keys).with('book_review:book:recent:*').and_return([ 'key1' ])
+        expect(CacheService).to receive(:delete).with([ 'key1' ]).and_return(1)
         BookService.invalidate_recent_cache
       end
     end
 
     describe '.invalidate_all_cache' do
       it 'clears all cache' do
-        expect(CacheKeys).to receive(:clear_all_cache)
+        expect(CacheService).to receive(:keys).with('book_review:*').and_return([ 'key1', 'key2' ])
+        expect(CacheService).to receive(:delete).with([ 'key1', 'key2' ]).and_return(2)
         BookService.invalidate_all_cache
       end
     end

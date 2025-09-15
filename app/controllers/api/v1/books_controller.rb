@@ -4,7 +4,7 @@ module Api
       include Response
       include ExceptionHandler
 
-      expose :book, -> { BookService.find_book(params[:id]) }
+      expose :book, -> { BookService.cached_find_book(params[:id]) }
       expose :search_results, -> { BookService.search_books(params[:q]) }
       expose :books_collection, -> { BookService.paginated_books }
 
@@ -21,7 +21,7 @@ module Api
       end
 
       def show
-        json_response(book.as_json(include: :reviews))
+        json_response(book)
       end
 
       def search

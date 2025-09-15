@@ -61,35 +61,38 @@ RSpec.describe CacheService::Base, type: :model do
     describe '#serialize' do
       it 'serializes simple values' do
         result = base_instance.send(:serialize, 'test_value')
-        expect(result).to eq('"test_value"')
+        expect(result).to eq(Marshal.dump('test_value'))
       end
 
       it 'serializes complex objects' do
         complex_object = { 'key' => 'value', 'array' => [ 1, 2, 3 ] }
         result = base_instance.send(:serialize, complex_object)
-        expect(result).to eq('{"key":"value","array":[1,2,3]}')
+        expect(result).to eq(Marshal.dump(complex_object))
       end
 
       it 'serializes nil values' do
         result = base_instance.send(:serialize, nil)
-        expect(result).to eq('null')
+        expect(result).to eq(Marshal.dump(nil))
       end
     end
 
     describe '#deserialize' do
       it 'deserializes simple values' do
-        result = base_instance.send(:deserialize, '"test_value"')
+        marshaled_value = Marshal.dump('test_value')
+        result = base_instance.send(:deserialize, marshaled_value)
         expect(result).to eq('test_value')
       end
 
       it 'deserializes complex objects' do
-        json_string = '{"key":"value","array":[1,2,3]}'
-        result = base_instance.send(:deserialize, json_string)
+        complex_object = { 'key' => 'value', 'array' => [ 1, 2, 3 ] }
+        marshaled_value = Marshal.dump(complex_object)
+        result = base_instance.send(:deserialize, marshaled_value)
         expect(result).to eq({ 'key' => 'value', 'array' => [ 1, 2, 3 ] })
       end
 
       it 'deserializes null values' do
-        result = base_instance.send(:deserialize, 'null')
+        marshaled_value = Marshal.dump(nil)
+        result = base_instance.send(:deserialize, marshaled_value)
         expect(result).to be_nil
       end
     end
