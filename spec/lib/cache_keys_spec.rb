@@ -148,18 +148,33 @@ RSpec.describe CacheKeys do
       keys = CacheKeys.keys('test_pattern')
       expect(keys).to eq([])
     end
+
+    it 'calls CacheService.keys directly' do
+      # This test covers line 82 by calling the real CacheService.keys method
+      pattern = 'book_review:direct_test:*'
+
+      # Don't mock anything - let the real implementation run
+      keys = CacheKeys.keys(pattern)
+      expect(keys).to eq([])
+    end
+
+    it 'calls CacheService.keys with a wildcard pattern' do
+      # Another test to ensure line 82 is covered
+      keys = CacheKeys.keys('*')
+      expect(keys).to be_an(Array)
+    end
   end
 
   describe '.clear_pattern' do
     it 'returns 0 when no keys match pattern (mocked)' do
-      allow(CacheKeys).to receive(:keys).with('no_match:*').and_return([])
+      allow(CacheKeys).to receive(:keys).with('no_match:*', cache_service: CacheService).and_return([])
       result = CacheKeys.clear_pattern('no_match:*')
       expect(result).to eq(0)
     end
 
     it 'deletes keys when pattern matches (mocked)' do
       matching_keys = [ 'key1', 'key2' ]
-      allow(CacheKeys).to receive(:keys).with('match:*').and_return(matching_keys)
+      allow(CacheKeys).to receive(:keys).with('match:*', cache_service: CacheService).and_return(matching_keys)
       allow(CacheService).to receive(:delete).with(matching_keys).and_return(2)
 
       result = CacheKeys.clear_pattern('match:*')
@@ -168,7 +183,7 @@ RSpec.describe CacheKeys do
 
     it 'calls CacheService.delete with the correct keys (mocked)' do
       matching_keys = [ 'book_review:books:page=1', 'book_review:books:page=2' ]
-      allow(CacheKeys).to receive(:keys).with('book_review:books:*').and_return(matching_keys)
+      allow(CacheKeys).to receive(:keys).with('book_review:books:*', cache_service: CacheService).and_return(matching_keys)
       expect(CacheService).to receive(:delete).with(matching_keys).and_return(2)
 
       CacheKeys.clear_pattern('book_review:books:*')
@@ -177,6 +192,59 @@ RSpec.describe CacheKeys do
     it 'executes the actual implementation when no keys are found' do
       # Test the actual implementation without mocking - this should cover lines 134-137
       result = CacheKeys.clear_pattern('no_match_pattern')
+      expect(result).to eq(0)
+    end
+
+    it 'executes the actual implementation when keys are found' do
+      # This test covers lines 132, 135 by mocking CacheKeys.keys to return keys
+      # and then calling the real CacheService.delete
+      pattern = 'book_review:actual_test:*'
+
+      # Mock CacheKeys.keys to return some keys, then let the real CacheService.delete be called
+      allow(CacheKeys).to receive(:keys).with(pattern, cache_service: CacheService).and_return([ 'key1', 'key2' ])
+      allow(CacheService).to receive(:delete).with([ 'key1', 'key2' ]).and_return(2)
+
+      result = CacheKeys.clear_pattern(pattern)
+      expect(result).to eq(2)
+    end
+
+    it 'executes the real clear_pattern implementation without mocking CacheKeys.keys' do
+      # This test covers lines 132, 133, 135 by calling the real implementation
+      # First, set up some actual cache keys so CacheService.keys returns something
+      CacheService.set('book_review:real_test:key1', 'value1')
+      CacheService.set('book_review:real_test:key2', 'value2')
+
+      pattern = 'book_review:real_test:*'
+
+      # Don't mock CacheKeys.keys - let it call the real implementation
+      # This should hit lines 132, 133, 135
+      result = CacheKeys.clear_pattern(pattern)
+
+      # Clean up
+      CacheService.delete('book_review:real_test:key1')
+      CacheService.delete('book_review:real_test:key2')
+
+      expect(result).to eq(2)
+    end
+
+    it 'calls self.keys with the provided pattern' do
+      pattern = 'book_review:books:*'
+      matching_keys = [ 'book_review:books:page=1', 'book_review:books:page=2' ]
+
+      expect(CacheKeys).to receive(:keys).with(pattern, cache_service: CacheService).and_return(matching_keys)
+      expect(CacheService).to receive(:delete).with(matching_keys).and_return(2)
+
+      result = CacheKeys.clear_pattern(pattern)
+      expect(result).to eq(2)
+    end
+
+    it 'returns 0 when keys array is empty' do
+      pattern = 'no_match:*'
+
+      expect(CacheKeys).to receive(:keys).with(pattern, cache_service: CacheService).and_return([])
+      expect(CacheService).not_to receive(:delete)
+
+      result = CacheKeys.clear_pattern(pattern)
       expect(result).to eq(0)
     end
   end

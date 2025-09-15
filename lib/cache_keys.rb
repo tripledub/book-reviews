@@ -77,9 +77,10 @@ module CacheKeys
   # Pattern-based key discovery for cache invalidation
   #
   # @param pattern [String] Redis key pattern (supports wildcards)
+  # @param cache_service [Object] Cache service to use (defaults to CacheService)
   # @return [Array<String>] Array of matching cache keys
-  def self.keys(pattern = "*")
-    CacheService.keys(pattern)
+  def self.keys(pattern = "*", cache_service: CacheService)
+    cache_service.keys(pattern)
   end
 
   # Generate pattern for all book-related keys
@@ -127,12 +128,13 @@ module CacheKeys
   # Clear all cache keys matching a pattern
   #
   # @param pattern [String] Pattern to match keys for deletion
+  # @param cache_service [Object] Cache service to use (defaults to CacheService)
   # @return [Integer] Number of keys deleted
-  def self.clear_pattern(pattern)
-    keys = self.keys(pattern)
+  def self.clear_pattern(pattern, cache_service: CacheService)
+    keys = self.keys(pattern, cache_service: cache_service)
     return 0 if keys.empty?
 
-    CacheService.delete(keys)
+    cache_service.delete(keys)
   end
 
   # Clear all book-related cache

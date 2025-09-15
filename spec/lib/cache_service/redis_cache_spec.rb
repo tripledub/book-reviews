@@ -65,6 +65,30 @@ RSpec.describe CacheService::RedisCache, type: :model do
       allow(mock_redis).to receive(:exists?).with(test_key).and_return(false)
       expect(cache.exists?(test_key)).to be false
     end
+
+    it 'uses setex when expires_in is provided' do
+      # Mock Redis to verify setex is called with TTL
+      mock_redis = double('redis')
+      allow(cache).to receive(:with_connection).and_yield(mock_redis)
+      allow(mock_redis).to receive(:flushdb) # For the clear call in before block
+
+      # Expect setex to be called with key, TTL, and serialized value
+      expect(mock_redis).to receive(:setex).with(test_key, 3600, anything)
+
+      cache.set(test_key, test_value, expires_in: 1.hour)
+    end
+
+    it 'uses set when expires_in is not provided' do
+      # Mock Redis to verify set is called without TTL
+      mock_redis = double('redis')
+      allow(cache).to receive(:with_connection).and_yield(mock_redis)
+      allow(mock_redis).to receive(:flushdb) # For the clear call in before block
+
+      # Expect set to be called with key and serialized value (no TTL)
+      expect(mock_redis).to receive(:set).with(test_key, anything)
+
+      cache.set(test_key, test_value)
+    end
   end
 
   describe '#delete' do
@@ -174,6 +198,59 @@ RSpec.describe CacheService::RedisCache, type: :model do
       # This test would require mocking Redis connection failure
       # For now, we'll just ensure the connection is working
       expect { cache.send(:ensure_connection) }.not_to raise_error
+    end
+
+    it 'logs error and re-raises when ensure_connection fails' do
+      # Mock Redis connection failure in ensure_connection
+      mock_redis = double('redis')
+      allow(mock_redis).to receive(:ping).and_raise(StandardError, 'Connection failed')
+
+      # Mock Rails logger
+      mock_logger = double('logger')
+      allow(Rails).to receive(:logger).and_return(mock_logger)
+      expect(mock_logger).to receive(:error).with('[RedisCache] Failed to connect to Redis: Connection failed')
+
+      # Mock Redis.new to return our failing redis
+      allow(Redis).to receive(:new).and_return(mock_redis)
+
+      # Create a new cache instance - this will fail during initialization
+      expect { CacheService::RedisCache.new }.to raise_error(StandardError, 'Connection failed')
+    end
+
+    it 'handles connection errors in with_connection and reconnects' do
+      # Mock Redis connection error and successful reconnection
+      failing_redis = double('failing_redis')
+      working_redis = double('working_redis')
+
+      # First redis fails, second succeeds
+      allow(failing_redis).to receive(:ping).and_raise(Redis::ConnectionError, 'Connection lost')
+      allow(working_redis).to receive(:ping).and_return('PONG')
+
+      # Mock Rails logger
+      mock_logger = double('logger')
+      allow(Rails).to receive(:logger).and_return(mock_logger)
+      expect(mock_logger).to receive(:warn).with('[RedisCache] Connection error, attempting reconnection: Connection lost')
+      allow(mock_logger).to receive(:error) # Allow error calls from ensure_connection
+
+      # Mock the block execution on working redis
+      block_executed = false
+      allow(working_redis).to receive(:get).with('test_key') do
+        block_executed = true
+        nil
+      end
+
+      # Mock Redis.new to return working redis for reconnection
+      allow(Redis).to receive(:new).and_return(working_redis)
+
+      # Create a new cache instance and manually set the failing redis
+      test_cache = CacheService::RedisCache.new
+      test_cache.instance_variable_set(:@redis, failing_redis)
+
+      # This should trigger the reconnection logic
+      result = test_cache.get('test_key')
+
+      expect(result).to be_nil
+      expect(block_executed).to be true
     end
   end
 

@@ -32,21 +32,5 @@ Rails.application.configure do
   end
 end
 
-# Configure CacheKeys to use the configured backend
-module CacheKeys
-  # Override the keys method to use the configured backend
-  def self.keys(pattern = "*")
-    CacheService.backend.keys(pattern)
-  end
-
-  # Override the clear_pattern method to use the configured backend
-  def self.clear_pattern(pattern)
-    keys = self.keys(pattern)
-    return 0 if keys.empty?
-
-    CacheService.delete(keys)
-  end
-end
-
 # Log cache configuration on startup
 Rails.logger.info("[CacheService] Configured with backend: #{CacheService.backend.class.name}") if Rails.logger
