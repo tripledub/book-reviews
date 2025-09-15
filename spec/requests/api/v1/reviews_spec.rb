@@ -136,4 +136,68 @@ RSpec.describe "Api::V1::Reviews", type: :request do
       end
     end
   end
+
+  describe "GET /api/v1/reviews" do
+    let!(:review) { Review.create!(book: book, title: "Great Book", description: "Amazing read", score: 5) }
+
+    it "returns http success and reviews with books" do
+      get "/api/v1/reviews"
+      expect(response).to have_http_status(:success)
+
+      json_response = JSON.parse(response.body)
+      expect(json_response).to have_key("reviews")
+      expect(json_response).to have_key("pagy")
+      expect(json_response["reviews"]).to be_an(Array)
+      expect(json_response["reviews"].first["title"]).to eq(review.title)
+      expect(json_response["reviews"].first["book"]).to be_present
+    end
+  end
+
+  describe "GET /api/v1/reviews/:id" do
+    let!(:review) { Review.create!(book: book, title: "Great Book", description: "Amazing read", score: 5) }
+
+    it "returns http success and review with book" do
+      get "/api/v1/reviews/#{review.id}"
+      expect(response).to have_http_status(:success)
+
+      json_response = JSON.parse(response.body)
+      expect(json_response["title"]).to eq(review.title)
+      expect(json_response["book"]).to be_present
+    end
+
+    it "returns not found for invalid id" do
+      get "/api/v1/reviews/999999"
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "GET /api/v1/reviews/search" do
+    let!(:review) { Review.create!(book: book, title: "Great Book", description: "Amazing read", score: 5) }
+
+    it "returns http success for valid search query" do
+      get "/api/v1/reviews/search", params: { q: review.title.split.first }
+      expect(response).to have_http_status(:success)
+
+      json_response = JSON.parse(response.body)
+      expect(json_response).to have_key("reviews")
+      expect(json_response).to have_key("pagy")
+      expect(json_response["reviews"]).to be_an(Array)
+      expect(json_response["reviews"].first["title"]).to eq(review.title)
+    end
+
+    it "returns bad request for missing query parameter" do
+      get "/api/v1/reviews/search"
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "returns empty array for no matches" do
+      get "/api/v1/reviews/search", params: { q: "Nonexistent" }
+      expect(response).to have_http_status(:success)
+
+      json_response = JSON.parse(response.body)
+      expect(json_response).to have_key("reviews")
+      expect(json_response).to have_key("pagy")
+      expect(json_response["reviews"]).to eq([])
+    end
+  end
 end

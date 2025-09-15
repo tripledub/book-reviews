@@ -160,51 +160,41 @@ RSpec.describe ReviewService, type: :service do
   describe '.search_reviews' do
     context 'with valid query' do
       it 'returns reviews matching title' do
-        result = ReviewService.search_reviews(query: "Great")
+        result = ReviewService.search_reviews("Great")
 
-        expect(result[:success]).to be true
-        expect(result[:reviews]).to include(review1)
-        expect(result[:reviews]).not_to include(review2, review3, review4, review5)
+        expect(result).to include(review1)
+        expect(result).not_to include(review2, review3, review4, review5)
       end
 
       it 'returns reviews matching description' do
         # Assuming we have a description field
         review1.update!(description: "This is a great programming book")
-        result = ReviewService.search_reviews(query: "programming")
+        result = ReviewService.search_reviews("programming")
 
-        expect(result[:success]).to be true
-        expect(result[:reviews]).to include(review1)
+        expect(result).to include(review1)
       end
 
       it 'is case insensitive' do
-        result = ReviewService.search_reviews(query: "great")
+        result = ReviewService.search_reviews("great")
 
-        expect(result[:success]).to be true
-        expect(result[:reviews]).to include(review1)
+        expect(result).to include(review1)
       end
 
       it 'orders reviews by creation date descending' do
-        result = ReviewService.search_reviews(query: "book")
+        result = ReviewService.search_reviews("book")
 
-        expect(result[:success]).to be true
-        expect(result[:reviews]).to include(review1, review3) # Reviews with "book" in title
-        expect(result[:reviews].count).to eq(2)
+        expect(result).to include(review1, review3) # Reviews with "book" in title
+        expect(result.count).to eq(2)
       end
     end
 
     context 'with blank query' do
-      it 'returns error message' do
-        result = ReviewService.search_reviews(query: "")
-
-        expect(result[:success]).to be false
-        expect(result[:error]).to eq("Search query is required")
+      it 'raises ArgumentError for empty string' do
+        expect { ReviewService.search_reviews("") }.to raise_error(ArgumentError, "Search query is required")
       end
 
-      it 'returns error message for nil query' do
-        result = ReviewService.search_reviews(query: nil)
-
-        expect(result[:success]).to be false
-        expect(result[:error]).to eq("Search query is required")
+      it 'raises ArgumentError for nil query' do
+        expect { ReviewService.search_reviews(nil) }.to raise_error(ArgumentError, "Search query is required")
       end
     end
   end

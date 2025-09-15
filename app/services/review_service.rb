@@ -164,14 +164,12 @@ class ReviewService
     # @example
     #   ReviewService.search_reviews(query: "amazing")     # Find reviews with "amazing"
     #   ReviewService.search_reviews(query: "")            # => { success: false, error: "..." }
-    def search_reviews(query:)
-      return { success: false, error: "Search query is required" } if query.blank?
+    def search_reviews(query)
+      raise ArgumentError, "Search query is required" if query.blank?
 
-      reviews = Review.includes(:book)
-                      .where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
-                      .order(created_at: :desc)
-
-      { success: true, reviews: reviews }
+      Review.includes(:book)
+            .where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
+            .order(created_at: :desc)
     end
 
     # @!endgroup
