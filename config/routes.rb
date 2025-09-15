@@ -14,9 +14,14 @@ Rails.application.routes.draw do
         end
       end
 
-      resources :reviews, only: [ :create ]
+      resources :reviews, only: [ :index, :create, :show ] do
+        collection do
+          get :search
+        end
+      end
     end
   end
+
 
   # Root route for React SPA
   root "application#index"

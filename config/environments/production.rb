@@ -49,6 +49,18 @@ Rails.application.configure do
   # Replace the default in-process memory cache store with a durable alternative.
   config.cache_store = :solid_cache_store
 
+  # Custom cache configuration for Book Review application
+  # Use Redis cache for production (persistent, scalable, fast)
+  # Can be overridden with environment variables
+  config.book_review_cache_backend = ENV.fetch("BOOK_REVIEW_CACHE_BACKEND", "redis").to_sym
+  config.book_review_cache_options = {
+    # Redis options (used when BOOK_REVIEW_CACHE_BACKEND=redis)
+    redis_url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
+    redis_timeout: ENV.fetch("REDIS_TIMEOUT", "5").to_i,
+    redis_pool_size: ENV.fetch("REDIS_POOL_SIZE", "5").to_i,
+    redis_pool_timeout: ENV.fetch("REDIS_POOL_TIMEOUT", "5").to_i
+  }
+
   # Replace the default in-process and non-durable queuing backend for Active Job.
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }

@@ -1,30 +1,42 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Book } from '../types'
+import { Book, PaginationMeta } from '../types'
+import SearchBar from './SearchBar'
 
 const Books: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([])
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [currentPage, setCurrentPage] = useState<number>(1)
 
   useEffect(() => {
     fetchBooks()
-  }, [])
+  }, [currentPage])
 
-  const fetchBooks = async (query: string = ''): Promise<void> => {
+  const fetchBooks = async (query: string = '', page: number = 1): Promise<void> => {
     try {
       setLoading(true)
       const url = query 
         ? `/api/v1/books/search?q=${encodeURIComponent(query)}`
-        : '/api/v1/books'
+        : `/api/v1/books?page=${page}`
       
       const response = await fetch(url)
       if (!response.ok) throw new Error('Failed to fetch books')
       
-      const data: Book[] = await response.json()
-      setBooks(data)
-      setError(null)
+      const data = await response.json()
+      
+      // Defensive programming: ensure books is an array
+      if (data && Array.isArray(data.books)) {
+        setBooks(data.books)
+        setPagination(data.pagy)
+        setError(null)
+      } else {
+        console.error('Invalid response structure:', data)
+        setError('Invalid response format')
+        setBooks([])
+        setPagination(null)
+      }
     } catch (err) {
       setError('Failed to load books')
       console.error('Error fetching books:', err)
@@ -33,9 +45,14 @@ const Books: React.FC = () => {
     }
   }
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault()
-    fetchBooks(searchQuery)
+  const handleSearch = (query: string): void => {
+    setCurrentPage(1) // Reset to first page when searching
+    fetchBooks(query, 1)
+  }
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page)
+    fetchBooks('', page)
   }
 
   if (loading) {
@@ -63,39 +80,15 @@ const Books: React.FC = () => {
   return (
     <div>
       {/* Search Bar */}
-      <div className="mb-8">
-        <form onSubmit={handleSearch} className="flex gap-4">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search books by title or author..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Search
-          </button>
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('')
-                fetchBooks()
-              }}
-              className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              Clear
-            </button>
-          )}
-        </form>
-      </div>
+      <SearchBar
+        onSearch={handleSearch}
+        onClear={() => fetchBooks()}
+        placeholder="Search books by title or author..."
+      />
 
       {/* Books Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {books.map((book) => (
+        {Array.isArray(books) && books.map((book) => (
           <Link
             key={book.id}
             to={`/books/${book.id}`}
@@ -143,11 +136,64 @@ const Books: React.FC = () => {
         ))}
       </div>
 
-      {books.length === 0 && !loading && (
+      {Array.isArray(books) && books.length === 0 && !loading && (
         <div className="text-center py-12">
           <div className="text-gray-500 text-lg">
-            {searchQuery ? 'No books found matching your search.' : 'No books available.'}
+            No books available.
           </div>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {pagination && pagination.pages > 1 && (
+        <div className="mt-8 flex justify-center items-center space-x-2">
+          {/* Previous Button */}
+          <button
+            onClick={() => handlePageChange(pagination.page - 1)}
+            disabled={!pagination.prev}
+            className={`px-3 py-2 rounded-md text-sm font-medium ${
+              pagination.prev
+                ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Previous
+          </button>
+
+          {/* Page Numbers */}
+          {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                page === pagination.page
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          {/* Next Button */}
+          <button
+            onClick={() => handlePageChange(pagination.page + 1)}
+            disabled={!pagination.next}
+            className={`px-3 py-2 rounded-md text-sm font-medium ${
+              pagination.next
+                ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Pagination Info */}
+      {pagination && (
+        <div className="mt-4 text-center text-sm text-gray-600">
+          Showing {pagination.from} to {pagination.to} of {pagination.count} books
         </div>
       )}
     </div>
