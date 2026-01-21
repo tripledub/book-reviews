@@ -38,5 +38,10 @@ module BookReview
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # Don't generate view specs and helper specs
+    config.generators do |g|
+      g.test_framework :rspec, view_specs: false, helper_specs: false
+    end
   end
 end

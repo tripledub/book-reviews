@@ -24,6 +24,9 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
+# Redis for caching and background jobs
+gem "redis", "~> 5.0"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
@@ -48,6 +51,9 @@ group :development, :test do
 
   # Test coverage
   gem "simplecov", require: false
+
+  # Generate fake data for tests
+  gem "faker"
 end
 
 group :development do
@@ -58,5 +64,11 @@ end
 gem "importmap-rails", "~> 2.2"
 
 gem "rspec-rails", "~> 8.0", groups: [ :development, :test ]
+
+gem "decent_exposure"
+gem "rails-controller-testing", groups: [ :development, :test ]
+
+# Pagination
+gem "pagy"
 
 gem "jsbundling-rails", "~> 1.3"

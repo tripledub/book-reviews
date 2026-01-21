@@ -1,0 +1,74 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 25,
+      "fingerprint": "51ba0f446351478ecf4476f1a5aa5504f6ccd5702fd4694813d068fc8b88b61c",
+      "check_name": "Deserialize",
+      "message": "Use of `Marshal.load` may be dangerous",
+      "file": "lib/cache_service/base.rb",
+      "line": 81,
+      "link": "https://brakemanscanner.org/docs/warning_types/unsafe_deserialization",
+      "code": "Marshal.load(data)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "CacheService::Base",
+        "method": "deserialize"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "cwe_id": [
+        502
+      ],
+      "note": "Safe internal caching - Marshal.load used only with data we control via Marshal.dump"
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 25,
+      "fingerprint": "61224d6020f420fecce70addbb7b8a81b1a26792326328794d44749dc2276c2f",
+      "check_name": "Deserialize",
+      "message": "Use of `Marshal.load` may be dangerous",
+      "file": "lib/cache_service.rb",
+      "line": 47,
+      "link": "https://brakemanscanner.org/docs/warning_types/unsafe_deserialization",
+      "code": "Marshal.load(backend.get(key))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "CacheService",
+        "method": "s(:self).fetch"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "cwe_id": [
+        502
+      ],
+      "note": "Safe internal caching - Marshal.load used only with data we control via Marshal.dump"
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 25,
+      "fingerprint": "7278b061377669ed2ca49d8cb978609ca111212ea8576ec4ee93eefc0051da03",
+      "check_name": "Deserialize",
+      "message": "Use of `Marshal.load` may be dangerous",
+      "file": "lib/cache_service.rb",
+      "line": 61,
+      "link": "https://brakemanscanner.org/docs/warning_types/unsafe_deserialization",
+      "code": "Marshal.load(backend.get(key))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "CacheService",
+        "method": "s(:self).get"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "cwe_id": [
+        502
+      ],
+      "note": "Safe internal caching - Marshal.load used only with data we control via Marshal.dump"
+    }
+  ],
+  "brakeman_version": "7.1.0"
+}

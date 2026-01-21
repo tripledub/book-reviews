@@ -26,4 +26,20 @@ export interface NewReview {
 export interface ApiError {
   errors?: string[]
   error?: string
+}
+
+export interface PaginationMeta {
+  count: number
+  page: number
+  pages: number
+  limit: number
+  from: number
+  to: number
+  prev: number | null
+  next: number | null
+}
+
+export interface PaginatedResponse<T> {
+  pagy: PaginationMeta
+  books: T[]
 } 
